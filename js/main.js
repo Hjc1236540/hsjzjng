@@ -326,13 +326,13 @@ const memorialTimelineData = [
             { 
                 type: 'video', 
                 urls: [
-                    'videos/memorial-video.mp4',
-                    'videos/memoria2-video.mp4',
-                    'videos/memoria3-video.mp4',
-                    'videos/memoria4-video.mp4',
-                    'videos/memoria5-video.mp4',
-                    'videos/memoria6-video.mp4',
-                    'videos/memoria7-video.mp4'
+                    'video/memorial-video.mp4',
+                    'video/memoria2-video.mp4',
+                    'video/memoria3-video.mp4',
+                    'video/memoria4-video.mp4',
+                    'video/memoria5-video.mp4',
+                    'video/memoria6-video.mp4',
+                    'video/memoria7-video.mp4'
                     
                 ], 
                 caption: '祭祖仪式视频' 
