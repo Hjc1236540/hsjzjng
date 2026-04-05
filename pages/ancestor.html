@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>祖先详情 - 胡氏家族纪念馆</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="site-title">胡氏家族纪念馆</h1>
+            <p class="site-subtitle">慎终追远 · 明德归厚</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-item">首页</a>
+            <a href="../index.html#ancestors" class="nav-item active">祖先纪念馆</a>
+            <a href="family-tree.html" class="nav-item">族谱</a>
+            <a href="../index.html#messages" class="nav-item">留言墙</a>
+            <a href="culture.html" class="nav-item">清明文化</a>
+            <a href="about.html" class="nav-item">关于我们</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <section class="section">
+            <div class="container">
+                <div class="page-container" id="ancestorDetail">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">&copy; 2026 胡氏家族纪念馆. 慎终追远，明德归厚.</p>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script>
+        function getAncestorId() {
+            const params = new URLSearchParams(window.location.search);
+            return parseInt(params.get('id'));
+        }
+
+        function renderAncestorDetail() {
+            const id = getAncestorId();
+            const ancestor = ancestorsData.find(a => a.id === id);
+
+            if (!ancestor) {
+                document.getElementById('ancestorDetail').innerHTML = `
+                    <a href="../index.html#ancestors" class="back-link">← 返回祖先列表</a>
+                    <p style="text-align: center; color: #666; padding: 50px;">未找到该祖先信息</p>
+                `;
+                return;
+            }
+
+            document.getElementById('ancestorDetail').innerHTML = `
+                <a href="../index.html#ancestors" class="back-link">← 返回祖先列表</a>
+                <div class="detail-photo">${ancestor.photo}</div>
+                <h2 class="detail-name">${ancestor.name}</h2>
+                ${ancestor.zi || ancestor.hao ? `<p class="detail-zihao">${ancestor.zi ? `字 ${ancestor.zi}` : ''}${ancestor.zi && ancestor.hao ? ' · ' : ''}${ancestor.hao ? `号 ${ancestor.hao}` : ''}</p>` : ''}
+                <p class="detail-dates">${ancestor.birthDate} — ${ancestor.deathDate}</p>
+                
+                <div class="detail-section">
+                    <h3>生平简介</h3>
+                    <p>${ancestor.biography}</p>
+                </div>
+                
+                <div class="detail-section">
+                    <h3>主要事迹</h3>
+                    <p>${ancestor.achievements}</p>
+                </div>
+                
+                <div class="detail-section">
+                    <h3>家族关系</h3>
+                    <div class="relation-list">
+                        <div class="relation-item">
+                            <div class="relation-label">父亲</div>
+                            <div class="relation-name">${ancestor.familyRelations.father}</div>
+                        </div>
+                        <div class="relation-item">
+                            <div class="relation-label">母亲</div>
+                            <div class="relation-name">${ancestor.familyRelations.mother}</div>
+                        </div>
+                        <div class="relation-item">
+                            <div class="relation-label">配偶</div>
+                            <div class="relation-name">${ancestor.familyRelations.spouse}</div>
+                        </div>
+                        <div class="relation-item">
+                            <div class="relation-label">子女</div>
+                            <div class="relation-name">${ancestor.familyRelations.children.join('、')}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h3>纪念语</h3>
+                    <p style="font-style: italic; color: #3A4F4F; font-size: 1.1rem; text-align: center;">${ancestor.memorial}</p>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', renderAncestorDetail);
+    </script>
+</body>
+</html>

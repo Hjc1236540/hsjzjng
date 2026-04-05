@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>族谱 - 胡氏家族纪念馆</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="site-title">胡氏家族纪念馆</h1>  
+            <p class="site-subtitle">慎终追远 · 明德归厚</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-item">首页</a>
+            <a href="../index.html#ancestors" class="nav-item">祖先纪念馆</a>
+            <a href="family-tree.html" class="nav-item active">族谱</a>
+            <a href="../index.html#messages" class="nav-item">留言墙</a>
+            <a href="culture.html" class="nav-item">清明文化</a>
+            <a href="about.html" class="nav-item">关于我们</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <section class="section">
+            <div class="container">
+                <div class="page-container">
+                    <a href="../index.html" class="back-link">← 返回首页</a>
+                    <h2 class="section-title">家族树</h2>
+                    <div class="family-tree" id="familyTree">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">&copy; 2026 胡氏家族纪念馆. 慎终追远，明德归厚.</p>      
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script>
+        function renderFamilyTree() {
+            const treeContainer = document.getElementById('familyTree');
+            if (!treeContainer) return;
+
+            treeContainer.innerHTML = familyTreeData.map(generation => `
+                <div class="tree-generation">
+                    <h3 class="generation-title">${generation.generation}</h3>
+                    <div class="tree-members">
+                        ${generation.members.map(member => `
+                            <div class="tree-member" onclick="viewAncestor(${member.id})">
+                                <div class="tree-member-name">${member.name}</div>
+                                <div class="tree-member-relation">${member.relation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewAncestor(id) {
+            window.location.href = `ancestor.html?id=${id}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', renderFamilyTree);
+    </script>
+</body>
+</html>
