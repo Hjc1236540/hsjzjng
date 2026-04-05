@@ -326,7 +326,7 @@ const memorialTimelineData = [
             { 
                 type: 'video', 
                 urls: [
-                    `videos/memorial-video.mp4`,
+                    'videos/memorial-video.mp4',
                     'videos/memoria2-video.mp4',
                     'videos/memoria3-video.mp4',
                     'videos/memoria4-video.mp4',
