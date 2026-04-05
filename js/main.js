@@ -310,18 +310,29 @@ const memorialTimelineData = [
             { 
                 type: 'image', 
                 urls: [
-                    'https://picsum.photos/400/300?random=1',
-                    'https://picsum.photos/400/300?random=2',
-                    'https://picsum.photos/400/300?random=3'
+                    'images/ancestor-01.jpg',
+                    'images/ancestor-02.jpg',
+                    'images/ancestor-03.jpg',
+                    'images/ancestor-04.jpg',
+                    'images/ancestor-05.jpg',
+                    'images/ancestor-06.jpg',
+                    'images/ancestor-07.jpg',
+                    'images/ancestor-08.jpg',
+                    'images/ancestor-09.jpg',
+                    'images/ancestor-10.jpg'
                 ], 
-                caption: '全家福合影' 
+                caption: '祭祖活动照片' 
             },
             { 
                 type: 'video', 
                 urls: [
-                    `https://picsum.photos/400/300?random=${Math.floor(Math.random() * 1000)}`,
-                    'placeholder',
-                    'placeholder'
+                    `videos/memorial-video.mp4`,
+                    'videos/memoria2-video.mp4',
+                    'videos/memoria3-video.mp4',
+                    'videos/memoria4-video.mp4',
+                    'videos/memoria5-video.mp4',
+                    'videos/memoria6-video.mp4',
+                    'videos/memoria7-video.mp4'
                 ], 
                 caption: '祭祖仪式视频' 
             }
@@ -335,7 +346,7 @@ const memorialTimelineData = [
         description: '家族众人齐聚祖坟，举行庄重的祭扫仪式。',
         location: '祖籍墓地',
         media: [
-            { type: 'image', url: 'placeholder', caption: '全家福合影' },
+            { type: 'image', url: 'placeholder', caption: '祭祖活动照片' },
             { type: 'video', url: 'placeholder', caption: '祭祖仪式视频' }
         ]
     },
@@ -347,7 +358,7 @@ const memorialTimelineData = [
         description: '家族十余人齐聚祖坟，举行庄重的祭扫仪式。',
         location: '祖籍墓地',
         media: [
-            { type: 'image', url: 'placeholder', caption: '全家福合影' },
+            { type: 'image', url: 'placeholder', caption: '祭祖照片' },
             { type: 'image', url: 'placeholder', caption: '敬献花圈' }
         ]
     },
