@@ -333,6 +333,7 @@ const memorialTimelineData = [
                     'videos/memoria5-video.mp4',
                     'videos/memoria6-video.mp4',
                     'videos/memoria7-video.mp4'
+                    
                 ], 
                 caption: '祭祖仪式视频' 
             }
@@ -509,8 +510,9 @@ function renderMediaCarousel(media, timelineId, mediaIndex) {
                                 : `<img src="${url}" alt="${media.caption}" class="carousel-image" onclick="window.open('${url}', '_blank')">`)
                             : (url === 'placeholder'
                                 ? `<div class="media-placeholder">🎬</div>`
-                                : `<video controls class="carousel-video">
+                                : `<video controls class="carousel-video" preload="metadata">
                                        <source src="${url}" type="video/mp4">
+                                       您的浏览器不支持视频播放。
                                    </video>`)
                         }
                     </div>
