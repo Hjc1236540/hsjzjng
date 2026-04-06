@@ -643,6 +643,7 @@ function initFirebase() {
         
         loadCloudMessages();
         initCloudMessageForm();
+        initWorship();
     } catch (error) {
         console.error('Firebase 初始化失败:', error);
         updateFirebaseNotice('Firebase 配置错误，请检查配置');
@@ -954,40 +955,43 @@ function initMessageTabs() {
     });
 }
 
+let worshipInitialized = false;
+let worshipFlowerCount = 0;
+let worshipCandleCount = 0;
+let worshipIncenseCount = 0;
+
 function initWorship() {
+    if (worshipInitialized) return;
+    worshipInitialized = true;
+
     const flowerBtn = document.getElementById('flowerBtn');
     const candleBtn = document.getElementById('candleBtn');
     const incenseBtn = document.getElementById('incenseBtn');
 
-    let flowerCount = 0;
-    let candleCount = 0;
-    let incenseCount = 0;
-
     function updateDisplay() {
-        document.getElementById('flowerCount').textContent = flowerCount;
-        document.getElementById('candleCount').textContent = candleCount;
-        document.getElementById('incenseCount').textContent = incenseCount;
+        document.getElementById('flowerCount').textContent = worshipFlowerCount;
+        document.getElementById('candleCount').textContent = worshipCandleCount;
+        document.getElementById('incenseCount').textContent = worshipIncenseCount;
     }
 
-    if (window.FirebaseDatabase && window.firebaseApp) {
-        const db = window.FirebaseDatabase.getDatabase(window.firebaseApp);
-        const worshipRef = window.FirebaseDatabase.ref(db, 'worship');
+    if (window.FirebaseDatabase && firebaseDB) {
+        const worshipRef = window.FirebaseDatabase.ref(firebaseDB, 'worship');
 
         window.FirebaseDatabase.onValue(worshipRef, (snapshot) => {
             const data = snapshot.val() || { flowers: 0, candles: 0, incense: 0 };
-            flowerCount = data.flowers || 0;
-            candleCount = data.candles || 0;
-            incenseCount = data.incense || 0;
+            worshipFlowerCount = data.flowers || 0;
+            worshipCandleCount = data.candles || 0;
+            worshipIncenseCount = data.incense || 0;
             updateDisplay();
         });
 
         if (flowerBtn) {
             flowerBtn.addEventListener('click', () => {
-                flowerCount++;
+                worshipFlowerCount++;
                 window.FirebaseDatabase.set(worshipRef, {
-                    flowers: flowerCount,
-                    candles: candleCount,
-                    incense: incenseCount
+                    flowers: worshipFlowerCount,
+                    candles: worshipCandleCount,
+                    incense: worshipIncenseCount
                 });
                 createFloatingEffect('💐');
             });
@@ -995,11 +999,11 @@ function initWorship() {
 
         if (candleBtn) {
             candleBtn.addEventListener('click', () => {
-                candleCount++;
+                worshipCandleCount++;
                 window.FirebaseDatabase.set(worshipRef, {
-                    flowers: flowerCount,
-                    candles: candleCount,
-                    incense: incenseCount
+                    flowers: worshipFlowerCount,
+                    candles: worshipCandleCount,
+                    incense: worshipIncenseCount
                 });
                 createFloatingEffect('🕯️');
             });
@@ -1007,44 +1011,44 @@ function initWorship() {
 
         if (incenseBtn) {
             incenseBtn.addEventListener('click', () => {
-                incenseCount++;
+                worshipIncenseCount++;
                 window.FirebaseDatabase.set(worshipRef, {
-                    flowers: flowerCount,
-                    candles: candleCount,
-                    incense: incenseCount
+                    flowers: worshipFlowerCount,
+                    candles: worshipCandleCount,
+                    incense: worshipIncenseCount
                 });
                 createFloatingEffect('🙏');
             });
         }
     } else {
-        flowerCount = parseInt(localStorage.getItem('flowerCount') || '0');
-        candleCount = parseInt(localStorage.getItem('candleCount') || '0');
-        incenseCount = parseInt(localStorage.getItem('incenseCount') || '0');
+        worshipFlowerCount = parseInt(localStorage.getItem('flowerCount') || '0');
+        worshipCandleCount = parseInt(localStorage.getItem('candleCount') || '0');
+        worshipIncenseCount = parseInt(localStorage.getItem('incenseCount') || '0');
         updateDisplay();
 
         if (flowerBtn) {
             flowerBtn.addEventListener('click', () => {
-                flowerCount++;
-                localStorage.setItem('flowerCount', flowerCount);
-                document.getElementById('flowerCount').textContent = flowerCount;
+                worshipFlowerCount++;
+                localStorage.setItem('flowerCount', worshipFlowerCount);
+                document.getElementById('flowerCount').textContent = worshipFlowerCount;
                 createFloatingEffect('💐');
             });
         }
 
         if (candleBtn) {
             candleBtn.addEventListener('click', () => {
-                candleCount++;
-                localStorage.setItem('candleCount', candleCount);
-                document.getElementById('candleCount').textContent = candleCount;
+                worshipCandleCount++;
+                localStorage.setItem('candleCount', worshipCandleCount);
+                document.getElementById('candleCount').textContent = worshipCandleCount;
                 createFloatingEffect('🕯️');
             });
         }
 
         if (incenseBtn) {
             incenseBtn.addEventListener('click', () => {
-                incenseCount++;
-                localStorage.setItem('incenseCount', incenseCount);
-                document.getElementById('incenseCount').textContent = incenseCount;
+                worshipIncenseCount++;
+                localStorage.setItem('incenseCount', worshipIncenseCount);
+                document.getElementById('incenseCount').textContent = worshipIncenseCount;
                 createFloatingEffect('🙏');
             });
         }
@@ -1155,7 +1159,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initCarousel();
     renderAncestors();
     renderMemorialTimeline();
-    initWorship();
     initSmoothScroll();
     initActiveNav();
     initGitalk();
