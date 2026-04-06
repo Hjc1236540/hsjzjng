@@ -956,6 +956,7 @@ function initMessageTabs() {
 }
 
 let worshipInitialized = false;
+let currentWorshipData = { flowers: 0, candles: 0, incense: 0 };
 
 function initWorship() {
     if (worshipInitialized) return;
@@ -965,10 +966,10 @@ function initWorship() {
     const candleBtn = document.getElementById('candleBtn');
     const incenseBtn = document.getElementById('incenseBtn');
 
-    function updateDisplay(data) {
-        document.getElementById('flowerCount').textContent = data.flowers || 0;
-        document.getElementById('candleCount').textContent = data.candles || 0;
-        document.getElementById('incenseCount').textContent = data.incense || 0;
+    function updateDisplay() {
+        document.getElementById('flowerCount').textContent = currentWorshipData.flowers || 0;
+        document.getElementById('candleCount').textContent = currentWorshipData.candles || 0;
+        document.getElementById('incenseCount').textContent = currentWorshipData.incense || 0;
     }
 
     if (window.FirebaseDatabase && firebaseDB) {
@@ -976,86 +977,78 @@ function initWorship() {
 
         window.FirebaseDatabase.onValue(worshipRef, (snapshot) => {
             const data = snapshot.val() || { flowers: 0, candles: 0, incense: 0 };
-            updateDisplay(data);
+            currentWorshipData = data;
+            updateDisplay();
         });
 
         if (flowerBtn) {
             flowerBtn.addEventListener('click', () => {
-                window.FirebaseDatabase.runTransaction(worshipRef, (currentData) => {
-                    if (!currentData) {
-                        return { flowers: 1, candles: 0, incense: 0 };
-                    }
-                    currentData.flowers = (currentData.flowers || 0) + 1;
-                    return currentData;
-                }).then(() => {
-                    createFloatingEffect('💐');
-                }).catch((error) => {
-                    console.error('更新失败:', error);
-                });
+                currentWorshipData.flowers = (currentWorshipData.flowers || 0) + 1;
+                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                    .then(() => {
+                        createFloatingEffect('💐');
+                    })
+                    .catch((error) => {
+                        console.error('更新失败:', error);
+                    });
             });
         }
 
         if (candleBtn) {
             candleBtn.addEventListener('click', () => {
-                window.FirebaseDatabase.runTransaction(worshipRef, (currentData) => {
-                    if (!currentData) {
-                        return { flowers: 0, candles: 1, incense: 0 };
-                    }
-                    currentData.candles = (currentData.candles || 0) + 1;
-                    return currentData;
-                }).then(() => {
-                    createFloatingEffect('🕯️');
-                }).catch((error) => {
-                    console.error('更新失败:', error);
-                });
+                currentWorshipData.candles = (currentWorshipData.candles || 0) + 1;
+                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                    .then(() => {
+                        createFloatingEffect('🕯️');
+                    })
+                    .catch((error) => {
+                        console.error('更新失败:', error);
+                    });
             });
         }
 
         if (incenseBtn) {
             incenseBtn.addEventListener('click', () => {
-                window.FirebaseDatabase.runTransaction(worshipRef, (currentData) => {
-                    if (!currentData) {
-                        return { flowers: 0, candles: 0, incense: 1 };
-                    }
-                    currentData.incense = (currentData.incense || 0) + 1;
-                    return currentData;
-                }).then(() => {
-                    createFloatingEffect('🙏');
-                }).catch((error) => {
-                    console.error('更新失败:', error);
-                });
+                currentWorshipData.incense = (currentWorshipData.incense || 0) + 1;
+                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                    .then(() => {
+                        createFloatingEffect('🙏');
+                    })
+                    .catch((error) => {
+                        console.error('更新失败:', error);
+                    });
             });
         }
     } else {
-        let flowerCount = parseInt(localStorage.getItem('flowerCount') || '0');
-        let candleCount = parseInt(localStorage.getItem('candleCount') || '0');
-        let incenseCount = parseInt(localStorage.getItem('incenseCount') || '0');
+        currentWorshipData.flowers = parseInt(localStorage.getItem('flowerCount') || '0');
+        currentWorshipData.candles = parseInt(localStorage.getItem('candleCount') || '0');
+        currentWorshipData.incense = parseInt(localStorage.getItem('incenseCount') || '0');
         
-        updateDisplay({ flowers: flowerCount, candles: candleCount, incense: incenseCount });
+        updateDisplay();
 
         if (flowerBtn) {
             flowerBtn.addEventListener('click', () => {
-                flowerCount++;
-                localStorage.setItem('flowerCount', flowerCount);
-                document.getElementById('flowerCount').textContent = flowerCount;
+                currentWorshipData.flowers++;
+                localStorage.setItem('flowerCount', currentWorshipData.flowers);
+                updateDisplay();
                 createFloatingEffect('💐');
             });
         }
 
         if (candleBtn) {
             candleBtn.addEventListener('click', () => {
-                candleCount++;
-                localStorage.setItem('candleCount', candleCount);
-                document.getElementById('candleCount').textContent = candleCount;
+                currentWorshipData.candles++;
+                localStorage.setItem('candleCount', currentWorshipData.candles);
+                updateDisplay();
                 createFloatingEffect('🕯️');
             });
         }
 
         if (incenseBtn) {
             incenseBtn.addEventListener('click', () => {
-                incenseCount++;
-                localStorage.setItem('incenseCount', incenseCount);
-                document.getElementById('incenseCount').textContent = incenseCount;
+                currentWorshipData.incense++;
+                localStorage.setItem('incenseCount', currentWorshipData.incense);
+                updateDisplay();
                 createFloatingEffect('🙏');
             });
         }
