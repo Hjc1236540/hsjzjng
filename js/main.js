@@ -635,6 +635,7 @@ function initFirebase() {
         }
 
         const app = window.FirebaseApp.initializeApp(firebaseConfig);
+        window.firebaseApp = app;
         firebaseDB = window.FirebaseDatabase.getDatabase(app);
         
         document.getElementById('firebaseConfigNotice').style.display = 'none';
@@ -653,6 +654,81 @@ function updateFirebaseNotice(text) {
     if (notice) {
         notice.innerHTML = `<p>🔧 ${text}</p><p style="font-size: 0.9rem; margin-top: 10px;">如需配置请查看 README.md</p>`;
     }
+}
+
+let isAdmin = false;
+
+function checkAdminPassword() {
+    const password = prompt('请输入管理员密码：');
+    if (password === 'admin123') {
+        isAdmin = true;
+        alert('管理员验证成功！现在可以删除留言了。');
+        loadCloudMessages();
+    } else if (password !== null) {
+        alert('密码错误！');
+    }
+}
+
+function deleteMessage(messageId) {
+    if (!isAdmin) {
+        alert('只有管理员可以删除留言！');
+        return;
+    }
+    
+    if (confirm('确定要删除这条留言吗？')) {
+        const messageRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}`);
+        window.FirebaseDatabase.set(messageRef, null);
+    }
+}
+
+function deleteReply(messageId, replyId) {
+    if (!isAdmin) {
+        alert('只有管理员可以删除回复！');
+        return;
+    }
+    
+    if (confirm('确定要删除这条回复吗？')) {
+        const replyRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies/${replyId}`);
+        window.FirebaseDatabase.set(replyRef, null);
+    }
+}
+
+function showReplyForm(messageId) {
+    const form = document.getElementById(`reply-form-${messageId}`);
+    if (form) {
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function submitReply(messageId) {
+    const nameInput = document.getElementById(`reply-name-${messageId}`);
+    const contentInput = document.getElementById(`reply-content-${messageId}`);
+    
+    const name = nameInput.value.trim();
+    const content = contentInput.value.trim();
+    
+    if (!name || !content) {
+        alert('请填写姓名和回复内容！');
+        return;
+    }
+    
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const newReply = {
+        name: name,
+        content: content,
+        date: dateStr,
+        timestamp: now.getTime()
+    };
+    
+    const repliesRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies`);
+    window.FirebaseDatabase.push(repliesRef, newReply);
+    
+    nameInput.value = '';
+    contentInput.value = '';
+    document.getElementById(`reply-form-${messageId}`).style.display = 'none';
+    createFloatingEffect('💬');
 }
 
 function loadCloudMessages() {
@@ -678,15 +754,50 @@ function renderCloudMessages(data) {
         .map(key => ({ id: key, ...data[key] }))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    messagesList.innerHTML = messages.map(msg => `
-        <div class="message-item">
-            <div class="message-header">
-                <span class="message-author">${escapeHtml(msg.name)}</span>
-                <span class="message-date">${msg.date}</span>
+    messagesList.innerHTML = messages.map(msg => {
+        const replies = msg.replies ? Object.keys(msg.replies)
+            .map(key => ({ id: key, ...msg.replies[key] }))
+            .sort((a, b) => new Date(a.date) - new Date(b.date)) : [];
+        
+        return `
+            <div class="message-item">
+                <div class="message-header">
+                    <span class="message-author">${escapeHtml(msg.name)}</span>
+                    <span class="message-date">${msg.date}</span>
+                    ${isAdmin ? `<button class="delete-btn" onclick="deleteMessage('${msg.id}')">🗑️ 删除</button>` : ''}
+                </div>
+                <div class="message-content">${escapeHtml(msg.content)}</div>
+                <div class="message-actions">
+                    <button class="reply-btn" onclick="showReplyForm('${msg.id}')">💬 回复</button>
+                    ${!isAdmin ? `<button class="admin-btn" onclick="checkAdminPassword()">🔑 管理员</button>` : ''}
+                </div>
+                
+                <div class="reply-form" id="reply-form-${msg.id}" style="display: none;">
+                    <input type="text" id="reply-name-${msg.id}" class="reply-input" placeholder="您的称呼">
+                    <textarea id="reply-content-${msg.id}" class="reply-textarea" placeholder="写下您的回复..."></textarea>
+                    <div class="reply-buttons">
+                        <button class="submit-reply-btn" onclick="submitReply('${msg.id}')">发表回复</button>
+                        <button class="cancel-reply-btn" onclick="document.getElementById('reply-form-${msg.id}').style.display='none'">取消</button>
+                    </div>
+                </div>
+                
+                ${replies.length > 0 ? `
+                    <div class="replies-container">
+                        ${replies.map(reply => `
+                            <div class="reply-item">
+                                <div class="reply-header">
+                                    <span class="reply-author">${escapeHtml(reply.name)}</span>
+                                    <span class="reply-date">${reply.date}</span>
+                                    ${isAdmin ? `<button class="delete-reply-btn" onclick="deleteReply('${msg.id}', '${reply.id}')">🗑️</button>` : ''}
+                                </div>
+                                <div class="reply-content">${escapeHtml(reply.content)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
             </div>
-            <div class="message-content">${escapeHtml(msg.content)}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function initCloudMessageForm() {
@@ -848,39 +959,95 @@ function initWorship() {
     const candleBtn = document.getElementById('candleBtn');
     const incenseBtn = document.getElementById('incenseBtn');
 
-    let flowerCount = parseInt(localStorage.getItem('flowerCount') || '0');
-    let candleCount = parseInt(localStorage.getItem('candleCount') || '0');
-    let incenseCount = parseInt(localStorage.getItem('incenseCount') || '0');
+    let flowerCount = 0;
+    let candleCount = 0;
+    let incenseCount = 0;
 
-    document.getElementById('flowerCount').textContent = flowerCount;
-    document.getElementById('candleCount').textContent = candleCount;
-    document.getElementById('incenseCount').textContent = incenseCount;
-
-    if (flowerBtn) {
-        flowerBtn.addEventListener('click', () => {
-            flowerCount++;
-            localStorage.setItem('flowerCount', flowerCount);
-            document.getElementById('flowerCount').textContent = flowerCount;
-            createFloatingEffect('💐');
-        });
+    function updateDisplay() {
+        document.getElementById('flowerCount').textContent = flowerCount;
+        document.getElementById('candleCount').textContent = candleCount;
+        document.getElementById('incenseCount').textContent = incenseCount;
     }
 
-    if (candleBtn) {
-        candleBtn.addEventListener('click', () => {
-            candleCount++;
-            localStorage.setItem('candleCount', candleCount);
-            document.getElementById('candleCount').textContent = candleCount;
-            createFloatingEffect('🕯️');
-        });
-    }
+    if (window.FirebaseDatabase && window.firebaseApp) {
+        const db = window.FirebaseDatabase.getDatabase(window.firebaseApp);
+        const worshipRef = window.FirebaseDatabase.ref(db, 'worship');
 
-    if (incenseBtn) {
-        incenseBtn.addEventListener('click', () => {
-            incenseCount++;
-            localStorage.setItem('incenseCount', incenseCount);
-            document.getElementById('incenseCount').textContent = incenseCount;
-            createFloatingEffect('🙏');
+        window.FirebaseDatabase.onValue(worshipRef, (snapshot) => {
+            const data = snapshot.val() || { flowers: 0, candles: 0, incense: 0 };
+            flowerCount = data.flowers || 0;
+            candleCount = data.candles || 0;
+            incenseCount = data.incense || 0;
+            updateDisplay();
         });
+
+        if (flowerBtn) {
+            flowerBtn.addEventListener('click', () => {
+                flowerCount++;
+                window.FirebaseDatabase.set(worshipRef, {
+                    flowers: flowerCount,
+                    candles: candleCount,
+                    incense: incenseCount
+                });
+                createFloatingEffect('💐');
+            });
+        }
+
+        if (candleBtn) {
+            candleBtn.addEventListener('click', () => {
+                candleCount++;
+                window.FirebaseDatabase.set(worshipRef, {
+                    flowers: flowerCount,
+                    candles: candleCount,
+                    incense: incenseCount
+                });
+                createFloatingEffect('🕯️');
+            });
+        }
+
+        if (incenseBtn) {
+            incenseBtn.addEventListener('click', () => {
+                incenseCount++;
+                window.FirebaseDatabase.set(worshipRef, {
+                    flowers: flowerCount,
+                    candles: candleCount,
+                    incense: incenseCount
+                });
+                createFloatingEffect('🙏');
+            });
+        }
+    } else {
+        flowerCount = parseInt(localStorage.getItem('flowerCount') || '0');
+        candleCount = parseInt(localStorage.getItem('candleCount') || '0');
+        incenseCount = parseInt(localStorage.getItem('incenseCount') || '0');
+        updateDisplay();
+
+        if (flowerBtn) {
+            flowerBtn.addEventListener('click', () => {
+                flowerCount++;
+                localStorage.setItem('flowerCount', flowerCount);
+                document.getElementById('flowerCount').textContent = flowerCount;
+                createFloatingEffect('💐');
+            });
+        }
+
+        if (candleBtn) {
+            candleBtn.addEventListener('click', () => {
+                candleCount++;
+                localStorage.setItem('candleCount', candleCount);
+                document.getElementById('candleCount').textContent = candleCount;
+                createFloatingEffect('🕯️');
+            });
+        }
+
+        if (incenseBtn) {
+            incenseBtn.addEventListener('click', () => {
+                incenseCount++;
+                localStorage.setItem('incenseCount', incenseCount);
+                document.getElementById('incenseCount').textContent = incenseCount;
+                createFloatingEffect('🙏');
+            });
+        }
     }
 }
 
