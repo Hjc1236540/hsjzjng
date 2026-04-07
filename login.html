@@ -111,21 +111,14 @@
             box-shadow: 0 6px 20px rgba(201, 162, 74, 0.4);
         }
 
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .hidden {
             display: none;
-        }
-
-        .back-link {
-            display: inline-block;
-            color: var(--color-qinghui);
-            text-decoration: none;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
-        .back-link:hover {
-            color: var(--color-danjin);
         }
 
         .debug-info {
@@ -137,6 +130,19 @@
             font-size: 0.9rem;
             color: #856404;
             word-break: break-all;
+        }
+
+        .retry-hint {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--color-qinghui);
+            font-size: 0.9rem;
+        }
+
+        .retry-hint a {
+            color: var(--color-danjin);
+            text-decoration: underline;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -217,29 +223,33 @@
         
         <div id="loginForm">
             <div class="form-group">
-                <input type="text" id="loginUsername" class="form-input" placeholder="用户名" required>
+                <input type="text" id="loginUsername" class="form-input" placeholder="用户名" autocomplete="username" required>
             </div>
             <div class="form-group">
-                <input type="password" id="loginPassword" class="form-input" placeholder="密码" required>
+                <input type="password" id="loginPassword" class="form-input" placeholder="密码" autocomplete="current-password" required>
             </div>
             <button type="button" class="submit-btn" id="loginBtn">登录</button>
         </div>
         
         <div id="registerForm" class="hidden">
             <div class="form-group">
-                <input type="text" id="registerUsername" class="form-input" placeholder="用户名" required>
+                <input type="text" id="registerUsername" class="form-input" placeholder="用户名" autocomplete="username" required>
                 <small style="color: var(--color-qinghui); font-size: 0.85rem;">用户名由字母、数字、下划线组成</small>
             </div>
             <div class="form-group">
-                <input type="password" id="registerPassword" class="form-input" placeholder="密码 (至少6位)" required>
+                <input type="password" id="registerPassword" class="form-input" placeholder="密码 (至少6位)" autocomplete="new-password" required>
             </div>
             <div class="form-group">
-                <input type="password" id="registerConfirmPassword" class="form-input" placeholder="确认密码" required>
+                <input type="password" id="registerConfirmPassword" class="form-input" placeholder="确认密码" autocomplete="new-password" required>
             </div>
             <div class="form-group">
-                <input type="text" id="registerName" class="form-input" placeholder="您的称呼" required>
+                <input type="text" id="registerName" class="form-input" placeholder="您的称呼" autocomplete="name" required>
             </div>
             <button type="button" class="submit-btn" id="registerBtn">注册</button>
+        </div>
+
+        <div class="retry-hint" id="retryHint" style="display: none;">
+            如果一直失败，请尝试：<a onclick="location.reload()">刷新页面</a>
         </div>
     </div>
     
@@ -249,6 +259,7 @@
         import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
         
         const debugInfo = document.getElementById('debugInfo');
+        const retryHint = document.getElementById('retryHint');
         
         function updateDebug(text) {
             debugInfo.textContent = text;
@@ -267,13 +278,34 @@
             appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
         };
         
-        try {
-            updateDebug('初始化 Firebase...');
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getDatabase(app);
-            updateDebug('Firebase 初始化成功 ✓');
-            
+        let app = null;
+        let auth = null;
+        let db = null;
+        let initRetries = 0;
+        const maxInitRetries = 3;
+        
+        function initFirebase() {
+            try {
+                updateDebug('初始化 Firebase... (尝试 ' + (initRetries + 1) + '/' + maxInitRetries + ')');
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getDatabase(app);
+                updateDebug('Firebase 初始化成功 ✓');
+                initApp();
+            } catch (error) {
+                initRetries++;
+                if (initRetries < maxInitRetries) {
+                    updateDebug('初始化失败，正在重试... (' + initRetries + '/' + maxInitRetries + ')');
+                    setTimeout(initFirebase, 1000);
+                } else {
+                    updateDebug('初始化失败: ' + error.message);
+                    retryHint.style.display = 'block';
+                    alert('Firebase 初始化失败，请刷新页面重试\n\n错误: ' + error.message);
+                }
+            }
+        }
+        
+        function initApp() {
             let currentTab = 'login';
             
             onAuthStateChanged(auth, (user) => {
@@ -303,8 +335,10 @@
                 }
             }
             
-            document.getElementById('loginBtn').addEventListener('click', async function() {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.addEventListener('click', async function() {
                 updateDebug('点击登录按钮');
+                loginBtn.disabled = true;
                 
                 let username = document.getElementById('loginUsername').value.trim();
                 let password = document.getElementById('loginPassword').value;
@@ -313,6 +347,7 @@
                 
                 if (!username || !password) {
                     alert('请填写用户名和密码！');
+                    loginBtn.disabled = false;
                     return;
                 }
                 
@@ -336,7 +371,10 @@
                         window.location.href = 'index.html';
                     }, 500);
                 } catch (error) {
+                    loginBtn.disabled = false;
                     updateDebug('登录失败: ' + error.code + ' - ' + error.message);
+                    retryHint.style.display = 'block';
+                    
                     let errorMsg = '登录失败，请重试';
                     if (error.code === 'auth/user-not-found') {
                         errorMsg = '用户不存在，请先注册';
@@ -347,7 +385,7 @@
                     } else if (error.code === 'auth/too-many-requests') {
                         errorMsg = '尝试次数过多，请稍后再试';
                     } else if (error.code === 'auth/network-request-failed') {
-                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试';
+                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试\n\n提示：请确保能访问外网';
                     } else if (error.code === 'auth/internal-error') {
                         errorMsg = '服务器内部错误，请稍后重试';
                     }
@@ -355,8 +393,10 @@
                 }
             });
             
-            document.getElementById('registerBtn').addEventListener('click', async function() {
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.addEventListener('click', async function() {
                 updateDebug('点击注册按钮');
+                registerBtn.disabled = true;
                 
                 let username = document.getElementById('registerUsername').value.trim();
                 const password = document.getElementById('registerPassword').value;
@@ -370,22 +410,26 @@
                 
                 if (!username || !password || !confirmPassword || !name) {
                     alert('请填写完整信息！');
+                    registerBtn.disabled = false;
                     return;
                 }
                 
                 if (password !== confirmPassword) {
                     alert('两次密码输入不一致！');
+                    registerBtn.disabled = false;
                     return;
                 }
                 
                 if (password.length < 6) {
                     alert('密码至少需要6位！');
+                    registerBtn.disabled = false;
                     return;
                 }
                 
                 const usernameRegex = /^[a-zA-Z0-9_]+$/;
                 if (!usernameRegex.test(username)) {
                     alert('用户名只能包含字母、数字和下划线！');
+                    registerBtn.disabled = false;
                     return;
                 }
                 
@@ -417,7 +461,10 @@
                         window.location.href = 'index.html';
                     }, 500);
                 } catch (error) {
+                    registerBtn.disabled = false;
                     updateDebug('注册失败: ' + error.code + ' - ' + error.message);
+                    retryHint.style.display = 'block';
+                    
                     let errorMsg = '注册失败，请重试';
                     if (error.code === 'auth/email-already-in-use') {
                         errorMsg = '用户名已被使用，请换一个';
@@ -426,18 +473,16 @@
                     } else if (error.code === 'auth/weak-password') {
                         errorMsg = '密码太弱，请使用更复杂的密码';
                     } else if (error.code === 'auth/network-request-failed') {
-                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试';
+                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试\n\n提示：请确保能访问外网';
                     } else if (error.code === 'auth/too-many-requests') {
                         errorMsg = '尝试次数过多，请稍后再试';
                     }
                     alert(errorMsg);
                 }
             });
-            
-        } catch (error) {
-            updateDebug('初始化失败: ' + error.message);
-            alert('Firebase 初始化失败，请刷新页面重试\n\n错误: ' + error.message);
         }
+        
+        initFirebase();
     </script>
 </body>
 </html>
