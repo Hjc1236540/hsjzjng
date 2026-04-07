@@ -1,3 +1,42 @@
+function initLazyLoading() {
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.addEventListener('load', () => {
+                            img.classList.add('loaded');
+                        });
+                        img.removeAttribute('data-src');
+                    }
+                    observer.unobserve(img);
+                }
+            });
+        }, {
+            rootMargin: '50px 0px',
+            threshold: 0.01
+        });
+
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    } else {
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            img.src = img.dataset.src;
+            img.classList.add('loaded');
+        });
+    }
+}
+
+function preloadImages(urls) {
+    urls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+    });
+}
+
 const ancestorsData = [
     {
         id: 1,
@@ -481,6 +520,15 @@ function renderMemorialTimeline() {
             </div>
         </div>
     `).join('');
+    
+    setTimeout(() => {
+        document.querySelectorAll('.carousel-image[data-src]').forEach(img => {
+            img.src = img.dataset.src;
+            img.onload = () => {
+                img.classList.add('loaded');
+            };
+        });
+    }, 300);
 }
 
 function renderMediaCarousel(media, timelineId, mediaIndex) {
@@ -507,10 +555,10 @@ function renderMediaCarousel(media, timelineId, mediaIndex) {
                         ${media.type === 'image' 
                             ? (url === 'placeholder' 
                                 ? `<div class="media-placeholder">🖼️</div>`
-                                : `<img src="${url}" alt="${media.caption}" class="carousel-image" onclick="window.open('${url}', '_blank')">`)
+                                : `<img data-src="${url}" src="" alt="${media.caption}" class="carousel-image" onclick="window.open('${url}', '_blank')">`)
                             : (url === 'placeholder'
                                 ? `<div class="media-placeholder">🎬</div>`
-                                : `<video controls class="carousel-video" preload="metadata">
+                                : `<video controls class="carousel-video" preload="metadata" data-video-id="video-${uniqueId}-${i}" onplay="saveScrollPosition(this)" onfullscreenchange="handleFullscreenChange(this)">
                                        <source src="${url}" type="video/mp4">
                                        您的浏览器不支持视频播放。
                                    </video>`)
@@ -529,6 +577,23 @@ function renderMediaCarousel(media, timelineId, mediaIndex) {
             ` : ''}
         </div>
     `;
+}
+
+let savedScrollPosition = 0;
+
+function saveScrollPosition(video) {
+    savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+}
+
+function handleFullscreenChange(video) {
+    if (!document.fullscreenElement) {
+        setTimeout(() => {
+            window.scrollTo({
+                top: savedScrollPosition,
+                behavior: 'smooth'
+            });
+        }, 100);
+    }
 }
 
 const carouselState = {};
@@ -1219,6 +1284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMessageForm();
     initMessageTabs();
     initFirebase();
+    initLazyLoading();
 });
 
 window.ancestorsData = ancestorsData;
