@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动公告 - 胡氏家族纪念馆</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .activity-list {
+            margin-top: 30px;
+        }
+
+        .activity-item {
+            background: var(--color-mibai);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--color-danjin);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .activity-title {
+            font-size: 1.4rem;
+            color: var(--color-mo);
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .activity-date {
+            background: linear-gradient(135deg, var(--color-danjin), #c9a24a);
+            color: var(--color-mibai);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .activity-tag {
+            display: inline-block;
+            background: var(--color-bg-light);
+            color: var(--color-qinghui);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .activity-content {
+            color: var(--color-mo);
+            line-height: 1.8;
+            margin-top: 15px;
+        }
+
+        .activity-content p {
+            margin-bottom: 12px;
+        }
+
+        .activity-content ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .activity-content li {
+            margin-bottom: 8px;
+        }
+
+        .activity-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .activity-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .activity-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .year-section {
+            margin-bottom: 40px;
+        }
+
+        .year-title {
+            font-size: 1.6rem;
+            color: var(--color-mo);
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--color-danjin);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-title::before {
+            content: '';
+            width: 8px;
+            height: 28px;
+            background: var(--color-danjin);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .activity-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .activity-title {
+                font-size: 1.2rem;
+            }
+
+            .activity-item {
+                padding: 20px;
+            }
+
+            .activity-images {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 class="site-title">胡氏家族纪念馆</h1>
+            <p class="site-subtitle">慎终追远 · 明德归厚</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-item">首页</a>
+            <a href="../index.html#ancestors" class="nav-item">祖先纪念馆</a>
+            <a href="family-tree.html" class="nav-item">族谱</a>
+            <a href="../index.html#messages" class="nav-item">留言墙</a>
+            <a href="culture.html" class="nav-item">清明文化</a>
+            <a href="about.html" class="nav-item">关于我们</a>
+            <a href="tomb-map.html" class="nav-item">扫墓地图</a>
+            <a href="activity.html" class="nav-item active">活动公告</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <section class="section">
+            <div class="container">
+                <div class="page-container">
+                    <a href="../index.html" class="back-link">← 返回首页</a>
+                    <h2 class="section-title">活动公告</h2>
+                    
+                    <div class="activity-list" id="activityList">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">&copy; 2026 胡氏家族纪念馆. 慎终追远，明德归厚.</p>
+        </div>
+    </footer>
+
+    <script>
+        const activities = [
+            {
+                year: 2026,
+                items: [
+                    {
+                        id: 1,
+                        title: '2026年清明节祭祖大典',
+                        date: '2026-04-05',
+                        tags: ['祭祖', '清明', '家族聚会'],
+                        content: `
+                            <p>尊敬的胡氏家族成员：</p>
+                            <p>一年一度的清明节即将来临，为缅怀先祖、凝聚亲情，兹定于2026年4月5日（清明节）举行胡氏家族祭祖大典。</p>
+                            <p><strong>活动安排：</strong></p>
+                            <ul>
+                                <li><strong>上午8:00-9:00</strong>：家族成员签到、领取祭祀用品</li>
+                                <li><strong>上午9:00-10:30</strong>：高祖墓地祭祖仪式</li>
+                                <li><strong>上午10:30-12:00</strong>：祭扫历代先祖墓地</li>
+                                <li><strong>中午12:00-14:00</strong>：家族聚餐（地点：三爹家里）</li>
+                                <li><strong>下午14:00-16:00</strong>：家族座谈会、交流分享</li>
+                            </ul>
+                            <p><strong>注意事项：</strong></p>
+                            <ul>
+                                <li>请各位宗亲尽量参加，共同缅怀先祖</li>
+                                <li>请穿着素雅得体的服装</li>
+                                <li>祭祀用品由家族统一准备</li>
+                                <li>请提前联系报名，以便安排聚餐席位</li>
+                            </ul>
+                            <p>联系人：胡俊超 电话：130-8259-4905</p>
+                            <p>期待各位宗亲的光临！</p>
+                        `,
+                        images: []
+                    },
+                    {
+                        id: 2,
+                        title: '胡氏宗谱第七次修订启动[活动样式]',
+                        date: '2026-01-15',
+                        tags: ['宗谱', '修订', '家族文化'],
+                        content: `
+                            <p>各位胡氏宗亲：</p>
+                            <p>为传承家族文化、记录家族历史，经家族理事会研究决定，启动胡氏宗谱第七次修订工作。</p>
+                            <p><strong>修订内容：</strong></p>
+                            <ul>
+                                <li>补充近20年来家族新增成员信息</li>
+                                <li>整理家族历史资料和照片</li>
+                                <li>完善家族世系图</li>
+                                <li>收集家族人物传记</li>
+                            </ul>
+                            <p><strong>征集信息：</strong></p>
+                            <ul>
+                                <li>各支派成员名单（含姓名、出生年月、配偶、子女等）</li>
+                                <li>家族老照片、老物件</li>
+                                <li>家族故事、传说</li>
+                                <li>祖先事迹资料</li>
+                            </ul>
+                            <p>请各位宗亲积极提供资料，共同完成这项意义重大的工作！</p>
+                            <p>联系人：胡俊超 邮箱：chaojunhu521@163.com</p>
+                        `,
+                        images: []
+                    }
+                ]
+            },
+            {
+                year: 2025,
+                items: [
+                    {
+                        id: 3,
+                        title: '2025年清明祭祖活动圆满举行[活动样式]',
+                        date: '2025-04-05',
+                        tags: ['回顾', '祭祖', '圆满'],
+                        content: `
+                            <p>2025年4月5日，胡氏家族清明祭祖活动在胡氏宗祠圆满举行。</p>
+                            <p>本次活动共有来自全国各地的120余位宗亲参加，大家齐聚一堂，共同缅怀先祖，畅叙亲情。</p>
+                            <p><strong>活动回顾：</strong></p>
+                            <ul>
+                                <li>上午8:30，祭祖仪式正式开始，全体宗亲向先祖行三鞠躬礼</li>
+                                <li>族长致辞，回顾家族历史，勉励后人</li>
+                                <li>全体宗亲依次敬献鲜花、上香</li>
+                                <li>祭扫了一世祖至十世祖墓地</li>
+                                <li>中午在宗祠举行聚餐，气氛热烈</li>
+                            </ul>
+                            <p>本次活动得到了各位宗亲的大力支持，在此表示衷心感谢！让我们共同期待明年再相聚！</p>
+                        `,
+                        images: []
+                    },
+                    {
+                        id: 4,
+                        title: '胡氏家族敬老座谈会[活动样式]',
+                        date: '2025-10-25',
+                        tags: ['敬老', '座谈会', '重阳'],
+                        content: `
+                            <p>2025年10月25日（重阳节），胡氏家族在宗祠举办了敬老座谈会。</p>
+                            <p>本次活动邀请了家族中70岁以上的长辈共30余人参加。</p>
+                            <p><strong>活动内容：</strong></p>
+                            <ul>
+                                <li>向各位长辈敬献鲜花和慰问金</li>
+                                <li>长辈们讲述家族历史和优良传统</li>
+                                <li>年轻一代向长辈请教学习</li>
+                                <li>共进敬老午餐</li>
+                            </ul>
+                            <p>尊老敬老是我们中华民族的传统美德，也是胡氏家族的优良家风。通过本次活动，年轻一代深受教育，纷纷表示要继承和发扬家族的优良传统。</p>
+                        `,
+                        images: []
+                    }
+                ]
+            },
+            {
+                year: 2024,
+                items: [
+                    {
+                        id: 5,
+                        title: '胡氏家族网上纪念馆正式上线[活动样式]',
+                        date: '2024-04-01',
+                        tags: ['纪念馆', '上线', '网上祭祀'],
+                        content: `
+                            <p>在2024年清明节来临之际，胡氏家族网上纪念馆正式上线了！</p>
+                            <p>这是一个跨越时空的缅怀平台，让散居各地的胡氏宗亲无论身在何处，都能追思先祖、缅怀亲人。</p>
+                            <p><strong>功能介绍：</strong></p>
+                            <ul>
+                                <li><strong>祖先纪念馆</strong>：展示历代先祖生平事迹</li>
+                                <li><strong>族谱</strong>：清晰的家族世系图</li>
+                                <li><strong>留言墙</strong>：宗亲互动交流</li>
+                                <li><strong>虚拟祭祀</strong>：在线献花、点烛、上香</li>
+                                <li><strong>扫墓纪事</strong>：记录历年扫墓活动</li>
+                            </ul>
+                            <p>希望各位宗亲多提宝贵意见，共同建设好我们的网上精神家园！</p>
+                        `,
+                        images: []
+                    },
+                    {
+                        id: 6,
+                        title: '胡氏宗祠修缮工程竣工[活动样式]',
+                        date: '2024-10-01',
+                        tags: ['宗祠', '修缮', '竣工'],
+                        content: `
+                            <p>经过半年的精心修缮，胡氏宗祠修缮工程于2024年10月1日正式竣工。</p>
+                            <p>本次修缮包括：</p>
+                            <ul>
+                                <li>宗祠主体建筑加固</li>
+                                <li>屋顶翻新、防水处理</li>
+                                <li>内部重新装修、粉刷</li>
+                                <li>神龛、匾额重新油漆贴金</li>
+                                <li>庭院绿化、道路硬化</li>
+                            </ul>
+                            <p>修缮后的胡氏宗祠焕然一新，既保持了传统风貌，又更加坚固耐用。感谢各位宗亲的慷慨捐助和大力支持！</p>
+                            <p>胡氏宗祠是我们共同的精神家园，让我们一起爱护它、守护它！</p>
+                        `,
+                        images: []
+                    }
+                ]
+            }
+        ];
+
+        function renderActivities() {
+            const list = document.getElementById('activityList');
+            
+            list.innerHTML = activities.map(yearData => `
+                <div class="year-section">
+                    <div class="year-title">${yearData.year}年</div>
+                    ${yearData.items.map(activity => `
+                        <div class="activity-item">
+                            <div class="activity-header">
+                                <div class="activity-title">${activity.title}</div>
+                                <div class="activity-date">${activity.date}</div>
+                            </div>
+                            <div>
+                                ${activity.tags.map(tag => `<span class="activity-tag">${tag}</span>`).join('')}
+                            </div>
+                            <div class="activity-content">
+                                ${activity.content}
+                            </div>
+                            ${activity.images && activity.images.length > 0 ? `
+                                <div class="activity-images">
+                                    ${activity.images.map(img => `
+                                        <img src="${img}" alt="${activity.title}" class="activity-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        renderActivities();
+    </script>
+</body>
+</html>
