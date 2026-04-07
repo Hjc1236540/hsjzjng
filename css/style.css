@@ -4,6 +4,19 @@
     box-sizing: border-box;
 }
 
+:root {
+    --color-qinghui: #3A4F4F;
+    --color-mibai: #F8F5F0;
+    --color-mohei: #222;
+    --color-danjin: #D4AF37;
+    --color-light-gray: #666;
+    --color-border: #ddd;
+    --color-mo: #222;
+    --color-bg-light: #f0ebe3;
+    --color-white: #fff;
+    --color-text: #333;
+}
+
 img {
     max-width: 100%;
     height: auto;
@@ -19,20 +32,20 @@ img[data-src].loaded {
     opacity: 1;
 }
 
-:root {
-    --color-qinghui: #3A4F4F;
-    --color-mibai: #F8F5F0;
-    --color-mohei: #222;
-    --color-danjin: #D4AF37;
-    --color-light-gray: #666;
-    --color-border: #ddd;
+img:not([src]), img[src=""] {
+    min-height: 150px;
+    background: linear-gradient(135deg, #e8e4dc 0%, #d4d0c8 100%);
+    position: relative;
 }
 
-body {
-    font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
-    background-color: var(--color-mibai);
-    color: var(--color-mohei);
-    line-height: 1.8;
+img:not([src])::before, img[src=""]::before {
+    content: '📷';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    opacity: 0.3;
 }
 
 h1, h2, h3, h4 {
