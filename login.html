@@ -251,11 +251,17 @@
         <div class="retry-hint" id="retryHint" style="display: none;">
             如果一直失败，请尝试：<a onclick="location.reload()">刷新页面</a>
         </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="button" id="clearLoginBtn" style="background: none; border: none; color: var(--color-qinghui); text-decoration: underline; cursor: pointer; font-size: 0.9rem;">
+                清除登录状态（重新测试）
+            </button>
+        </div>
     </div>
     
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
         import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
         
         const debugInfo = document.getElementById('debugInfo');
@@ -307,11 +313,30 @@
         
         function initApp() {
             let currentTab = 'login';
+            let skipRedirect = false;
+            
+            document.getElementById('clearLoginBtn').addEventListener('click', async function() {
+                try {
+                    updateDebug('正在清除登录状态...');
+                    await signOut(auth);
+                    skipRedirect = true;
+                    updateDebug('已清除登录状态，可以重新登录了');
+                    alert('已清除登录状态！现在可以重新登录或注册');
+                } catch (error) {
+                    updateDebug('清除失败: ' + error.message);
+                }
+            });
             
             onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    updateDebug('检测到已登录，跳转到首页...');
-                    window.location.href = 'index.html';
+                if (user && !skipRedirect) {
+                    updateDebug('检测到已登录，1秒后跳转到首页...');
+                    setTimeout(() => {
+                        if (!skipRedirect) {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else if (!user) {
+                    updateDebug('未登录状态，可以登录或注册');
                 }
             });
             
