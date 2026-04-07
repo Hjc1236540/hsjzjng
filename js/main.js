@@ -620,24 +620,26 @@ const firebaseConfig = {
 };
 
 let firebaseDB = null;
-let firebaseAuth = null;
 let currentUser = null;
 let currentUserName = '';
 
 function initFirebase() {
     try {
-        if (!window.firebaseApp || !window.firebaseAuthInstance) {
+        if (!window.firebaseApp) {
             setTimeout(initFirebase, 500);
             return;
         }
 
         firebaseDB = window.FirebaseDatabase.getDatabase(window.firebaseApp);
-        firebaseAuth = window.firebaseAuthInstance;
+        
+        if (window.currentUser) {
+            currentUser = window.currentUser;
+            currentUserName = currentUser.name || currentUser.username;
+        }
         
         document.getElementById('firebaseConfigNotice').style.display = 'none';
         document.getElementById('cloudMessageFormContainer').style.display = 'block';
         
-        initAuth();
         initEmojiPicker();
         loadCloudMessages();
         initCloudMessageForm();
@@ -667,24 +669,7 @@ function initEmojiPicker() {
     });
 }
 
-function initAuth() {
-    window.FirebaseAuth.onAuthStateChanged(firebaseAuth, (user) => {
-        currentUser = user;
-        updateAuthUI();
-    });
-}
 
-function updateAuthUI() {
-    if (currentUser) {
-        const userRef = window.FirebaseDatabase.ref(firebaseDB, `users/${currentUser.uid}`);
-        window.FirebaseDatabase.onValue(userRef, (snapshot) => {
-            const userData = snapshot.val();
-            if (userData && userData.name) {
-                currentUserName = userData.name;
-            }
-        }, { onlyOnce: true });
-    }
-}
 
 function updateFirebaseNotice(text) {
     const notice = document.getElementById('firebaseConfigNotice');
@@ -760,7 +745,7 @@ function submitReply(messageId) {
         content: content,
         date: dateStr,
         timestamp: now.getTime(),
-        userId: currentUser ? currentUser.uid : ''
+        userId: currentUser ? currentUser.username : ''
     };
     
     const repliesRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies`);
@@ -865,7 +850,7 @@ function initCloudMessageForm() {
             content: content,
             date: dateStr,
             timestamp: now.getTime(),
-            userId: currentUser ? currentUser.uid : ''
+            userId: currentUser ? currentUser.username : ''
         };
         
         const messagesRef = window.FirebaseDatabase.ref(firebaseDB, 'messages');
