@@ -273,48 +273,50 @@
         </div>
     </div>
     
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-        import { getAuth, onAuthStateChanged, updatePassword, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
+    <script>
+        const STORAGE_KEY_USERS = 'qingming_users';
+        const STORAGE_KEY_CURRENT = 'qingming_current_user';
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
-            authDomain: "qingming-memorial.firebaseapp.com",
-            databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "qingming-memorial",
-            storageBucket: "qingming-memorial.firebasestorage.app",
-            messagingSenderId: "342758055593",
-            appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
-        };
+        function getUsers() {
+            const users = localStorage.getItem(STORAGE_KEY_USERS);
+            return users ? JSON.parse(users) : {};
+        }
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+        }
         
-        let currentUserData = null;
+        function getCurrentUser() {
+            const user = localStorage.getItem(STORAGE_KEY_CURRENT);
+            return user ? JSON.parse(user) : null;
+        }
         
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
+        function setCurrentUser(user) {
+            localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(user));
+        }
+        
+        function clearCurrentUser() {
+            localStorage.removeItem(STORAGE_KEY_CURRENT);
+        }
+        
+        let currentUser = null;
+        
+        function init() {
+            currentUser = getCurrentUser();
+            
+            if (!currentUser) {
                 window.location.href = 'login.html';
                 return;
             }
             
-            const userRef = ref(db, `users/${user.uid}`);
-            onValue(userRef, (snapshot) => {
-                currentUserData = snapshot.val();
-                
-                if (currentUserData) {
-                    document.getElementById('displayName').textContent = currentUserData.name || '用户';
-                    document.getElementById('displayUsername').textContent = '@' + (currentUserData.username || 'user');
-                    document.getElementById('profileUsername').value = currentUserData.username || '';
-                    document.getElementById('profileName').value = currentUserData.name || '';
-                }
-            });
-        });
+            document.getElementById('displayName').textContent = currentUser.name || '用户';
+            document.getElementById('displayUsername').textContent = '@' + (currentUser.username || 'user');
+            document.getElementById('profileUsername').value = currentUser.username || '';
+            document.getElementById('profileName').value = currentUser.name || '';
+        }
         
-        async function saveProfile() {
-            if (!auth.currentUser) return;
+        function saveProfile() {
+            if (!currentUser) return;
             
             const name = document.getElementById('profileName').value.trim();
             const newPassword = document.getElementById('profileNewPassword').value;
@@ -335,39 +337,42 @@
                 return;
             }
             
-            try {
-                const userRef = ref(db, `users/${auth.currentUser.uid}`);
-                await update(userRef, {
-                    name: name
-                });
-                
+            const users = getUsers();
+            const user = users[currentUser.username];
+            
+            if (user) {
+                user.name = name;
                 if (newPassword) {
-                    await updatePassword(auth.currentUser, newPassword);
+                    user.password = newPassword;
                 }
+                users[currentUser.username] = user;
+                saveUsers(users);
+                
+                currentUser.name = name;
+                if (newPassword) {
+                    currentUser.password = newPassword;
+                }
+                setCurrentUser(currentUser);
                 
                 document.getElementById('displayName').textContent = name;
                 document.getElementById('profileNewPassword').value = '';
                 document.getElementById('profileConfirmPassword').value = '';
                 
                 alert('保存成功！');
-            } catch (error) {
-                alert('保存失败：' + error.message);
             }
         }
         
-        async function logout() {
+        function logout() {
             if (!confirm('确定要退出登录吗？')) return;
             
-            try {
-                await signOut(auth);
-                window.location.href = 'login.html';
-            } catch (error) {
-                alert('退出失败：' + error.message);
-            }
+            clearCurrentUser();
+            window.location.href = 'login.html';
         }
         
         window.saveProfile = saveProfile;
         window.logout = logout;
+        
+        init();
     </script>
 </body>
 </html>
