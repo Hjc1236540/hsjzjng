@@ -95,6 +95,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+        
         }
 
         .activity-image:hover {
@@ -359,9 +360,9 @@
                                 ${activity.content}
                             </div>
                             ${activity.images && activity.images.length > 0 ? `
-                                <div class="activity-images">
+                                <div class="activity-images" id="activity-images-${activity.id}">
                                     ${activity.images.map(img => `
-                                        <img src="${img}" alt="${activity.title}" class="activity-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
+                                        <img data-src="${img}" src="" alt="${activity.title}" class="activity-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
                                     `).join('')}
                                 </div>
                             ` : ''}
@@ -372,6 +373,15 @@
         }
 
         renderActivities();
+        
+        setTimeout(() => {
+            document.querySelectorAll('.activity-images img[data-src]').forEach(img => {
+                img.src = img.dataset.src;
+                img.onload = () => {
+                    img.classList.add('loaded');
+                };
+            });
+        }, 200);
     </script>
 </body>
 </html>
