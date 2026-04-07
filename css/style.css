@@ -1312,3 +1312,137 @@ h1, h2, h3, h4 {
 .delete-reply-btn:hover {
     background: rgba(231, 76, 60, 0.1);
 }
+
+.auth-section {
+    background: var(--color-bg-light);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--color-danjin), #d4a853);
+    border-radius: 8px;
+    color: var(--color-mibai);
+}
+
+.user-email {
+    font-weight: 600;
+}
+
+.logout-btn {
+    padding: 8px 20px;
+    background: var(--color-mibai);
+    color: var(--color-danjin);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.auth-forms {
+    margin-top: 15px;
+}
+
+.auth-tab-btn {
+    padding: 10px 30px;
+    border: none;
+    background: var(--color-qinghui);
+    color: var(--color-mibai);
+    cursor: pointer;
+    border-radius: 6px;
+    margin-right: 10px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.auth-tab-btn.active {
+    background: linear-gradient(135deg, var(--color-danjin), #d4a853);
+}
+
+.auth-tab-btn:hover {
+    transform: translateY(-2px);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    padding: 12px 16px;
+    border: 2px solid var(--color-qinghui);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: var(--color-mibai);
+    transition: border-color 0.3s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--color-danjin);
+}
+
+@media (max-width: 768px) {
+    .auth-section {
+        padding: 20px;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .auth-tab-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+.emoji-picker {
+    margin-top: 10px;
+}
+
+.emoji-title {
+    font-size: 0.9rem;
+    color: var(--color-qinghui);
+    margin-bottom: 8px;
+}
+
+.emoji-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.emoji-item {
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.emoji-item:hover {
+    background: var(--color-bg-light);
+    transform: scale(1.2);
+}
+
+.emoji-item:active {
+    transform: scale(0.95);
+}
