@@ -188,19 +188,20 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: linear-gradient(135deg, #e8e4dc 0%, #d4d0c8 100%);
+            position: relative;
         }
 
-        .detail-image:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .detail-image::before {
+            content: '📷';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            opacity: 0.3;
+            z-index: 0;
         }
-
-        .detail-description {
-            color: var(--color-mo);
-            line-height: 1.8;
-            font-size: 1rem;
-        }
-
         .detail-description p {
             margin-bottom: 15px;
         }
@@ -365,9 +366,10 @@
                 brief: '家族高祖大源安息之地',
                 description: '这里是胡氏家族高祖的安息之地，是家族的根源所在。每年清明，家族成员都会齐聚于此，举行庄重的祭扫仪式，缅怀先祖的恩德。',
                 images: [
-                    '../images/ancestor-02.jpg',
                     '../images/ancestor-01-1.jpg',
+                    '../images/ancestor-01-2.jpg',
                     '../images/ancestor-01-3.jpg',
+                    '../images/ancestor-01-4.jpg',
                 ]
             },
             {
@@ -505,9 +507,18 @@
             const imagesContainer = document.getElementById('detailImages');
             if (location.images && location.images.length > 0) {
                 imagesContainer.innerHTML = location.images.map(img => `
-                    <img src="${img}" alt="${location.name}" class="detail-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
+                    <img data-src="${img}" src="" alt="${location.name}" class="detail-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
                 `).join('');
                 imagesContainer.style.display = 'grid';
+                
+                setTimeout(() => {
+                    imagesContainer.querySelectorAll('img[data-src]').forEach(img => {
+                        img.src = img.dataset.src;
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                        };
+                    });
+                }, 100);
             } else {
                 imagesContainer.style.display = 'none';
             }
