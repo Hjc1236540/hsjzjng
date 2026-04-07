@@ -3,49 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>胡氏家族纪念馆 - 清明祭祖</title>
+    <title>胡氏家族纪念馆 - 清明祭祖网</title>
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--color-mibai);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--color-qinghui);
-            border-top-color: var(--color-danjin);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            font-size: 1.1rem;
-            color: var(--color-mo);
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
 </head>
 <body>
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">正在加载...</div>
-    </div>
-    <div id="mainContent" style="display: none;">
     <header class="header">
         <div class="header-content">
             <h1 class="site-title">胡氏家族纪念馆</h1>  
@@ -54,124 +16,185 @@
     </header>
 
     <nav class="nav">
-        <div class="container">
-            <div class="nav-links">
-                <a href="index.html" class="nav-link active">首页</a>
-                <a href="#ancestors" class="nav-link">祖先纪念馆</a>
-                <a href="#memorial-timeline" class="nav-link">扫墓纪事</a>
-                <a href="#family-tree" class="nav-link">族谱</a>
-                <a href="pages/tomb-map.html" class="nav-link">扫墓地图</a>
-                <a href="pages/activity.html" class="nav-link">活动公告</a>
-                <a href="#culture" class="nav-link">清明文化</a>
-                <a href="#about" class="nav-link">关于本站</a>
-                <a href="profile.html" class="nav-link">👤 个人中心</a>
-            </div>
+        <div class="nav-container">
+            <a href="#home" class="nav-item active">首页</a>
+            <a href="#ancestors" class="nav-item">祖先纪念馆</a>
+            <a href="pages/family-tree.html" class="nav-item">族谱</a>
+            <a href="#timeline" class="nav-item">扫墓纪事</a>
+            <a href="pages/culture.html" class="nav-item">清明文化</a>
+            <a href="pages/about.html" class="nav-item">关于我们</a>
+            <a href="pages/tomb-map.html" class="nav-item">扫墓地图</a>
+             <a href="pages/activity.html" class="nav-item">活动公告</a>
+            <a href="profile.html" class="nav-item" style="margin-left: auto;">👤 个人中心</a>
         </div>
     </nav>
 
     <main class="main">
-        <div class="container">
-            <section id="hero" class="section">
-                <div class="hero-carousel">
-                    <div class="carousel-slide">
-                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traditional%20chinese%20ancestor%20memorial%20ceremony%20qingming%20festival%20solemn%20respectful%20mountain%20landscape&image_size=landscape_16_9" alt="清明祭祖" class="hero-image">
-                        <div class="hero-overlay">
-                            <h2 class="hero-title">慎终追远 · 缅怀先人</h2>
-                            <p class="hero-subtitle">清明时节雨纷纷，路上行人欲断魂</p>
+        <section id="home" class="section">
+            <div class="carousel-container">
+                <div class="carousel" id="carousel">
+                    <div class="carousel-item active">
+                        <div class="carousel-content" style="background: linear-gradient(135deg, #3A4F4F 0%, #2c3e3e 100%);">
+                            <div class="carousel-text">
+                                <h2>清明时节雨纷纷</h2>
+                                <p>缅怀先祖，寄托哀思</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="carousel-content" style="background: linear-gradient(135deg, #F8F5F0 0%, #e8e4dc 100%); color: #3A4F4F;">
+                            <div class="carousel-text">
+                                <h2>家风家训代代传</h2>
+                                <p>传承家族优良传统</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="carousel-content" style="background: linear-gradient(135deg, #D4AF37 0%, #b8941f 100%);">
+                            <div class="carousel-text">
+                                <h2>慎终追远</h2>
+                                <p>饮水思源，不忘根本</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
+                <div class="carousel-indicators">
+                    <span class="indicator active" data-index="0"></span>
+                    <span class="indicator" data-index="1"></span>
+                    <span class="indicator" data-index="2"></span>
+                </div>
+            </div>
 
-            <section id="worship" class="section worship-section">
-                <h2 class="section-title">🕯️ 虚拟祭祀</h2>
-                <div class="worship-grid">
-                    <div class="worship-item" id="flower-btn">
-                        <div class="worship-icon">💐</div>
-                        <div class="worship-label">献花</div>
-                        <div class="worship-count" id="flower-count">0</div>
-                    </div>
-                    <div class="worship-item" id="candle-btn">
-                        <div class="worship-icon">🕯️</div>
-                        <div class="worship-label">点烛</div>
-                        <div class="worship-count" id="candle-count">0</div>
-                    </div>
-                    <div class="worship-item" id="incense-btn">
-                        <div class="worship-icon">🙏</div>
-                        <div class="worship-label">上香</div>
-                        <div class="worship-count" id="incense-count">0</div>
+            <div class="intro-section">
+                <div class="container">
+                    <div class="intro-box">
+                        <h2 class="section-title">清明寄语</h2>
+                        <p class="intro-text">
+                            清明时节，草木青青，细雨濛濛。在这个缅怀先人的日子里，
+                            我们创建此纪念馆，旨在追思先祖、缅怀亲人、传承家风、凝聚亲情。
+                        </p>
+                        <p class="intro-text">
+                            愿祖先们的精神永远激励后人，愿家族和睦，世代昌盛。
+                        </p>
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <section id="ancestors" class="section">
-                <h2 class="section-title">👴 祖先纪念馆</h2>
-                <div class="ancestor-grid" id="ancestor-list"></div>
-            </section>
-
-            <section id="memorial-timeline" class="section">
-                <h2 class="section-title">📅 扫墓纪事</h2>
-                <div class="timeline" id="memorial-timeline-list"></div>
-            </section>
-
-            <section id="family-tree" class="section">
-                <h2 class="section-title">🌳 家族树</h2>
-                <div class="family-tree" id="family-tree-container"></div>
-            </section>
-
-            <section id="messages" class="section">
-                <h2 class="section-title">💬 互动留言墙</h2>
-                <div class="message-form-container">
-                    <div id="userInfo" class="user-info"></div>
-                    <div class="form-group">
-                        <textarea id="messageInput" class="message-input" placeholder="写下您的思念、祝福或回忆..." rows="4"></textarea>
-                    </div>
-                    <div class="emoji-picker" id="emojiPicker">
-                        <span class="emoji-item" data-emoji="🙏">🙏</span>
-                        <span class="emoji-item" data-emoji="💐">💐</span>
-                        <span class="emoji-item" data-emoji="🕯️">🕯️</span>
-                        <span class="emoji-item" data-emoji="❤️">❤️</span>
-                        <span class="emoji-item" data-emoji="🙌">🙌</span>
-                        <span class="emoji-item" data-emoji="🌹">🌹</span>
-                        <span class="emoji-item" data-emoji="😢">😢</span>
-                        <span class="emoji-item" data-emoji="🥰">🥰</span>
-                        <span class="emoji-item" data-emoji="👏">👏</span>
-                        <span class="emoji-item" data-emoji="🙏🏻">🙏🏻</span>
-                    </div>
-                    <button class="submit-btn" id="submitMessageBtn">发表留言</button>
-                </div>
-                <div class="message-wall" id="message-wall"></div>
-            </section>
-
-            <section id="culture" class="section">
-                <h2 class="section-title">📜 清明文化</h2>
-                <div class="culture-content">
-                    <div class="culture-card">
-                        <h3 class="culture-title">清明节的起源</h3>
-                        <p class="culture-text">清明节始于周代，距今已有两千五百多年的历史。清明最早只是一种节气的名称，后来与寒食节融合，成为祭祀祖先的重要节日。</p>
-                    </div>
-                    <div class="culture-card">
-                        <h3 class="culture-title">传统习俗</h3>
-                        <p class="culture-text">清明节的传统习俗包括扫墓祭祖、踏青郊游、插柳戴花、放风筝、吃青团等。这些习俗既表达了对先人的缅怀，也体现了对生命的热爱。</p>
-                    </div>
-                    <div class="culture-card">
-                        <h3 class="culture-title">意义与价值</h3>
-                        <p class="culture-text">清明节是中华民族重要的传统节日，体现了"慎终追远、明德归厚"的文化精神，是连接过去与现在、祖先与后代的重要纽带。</p>
+            <div class="quick-entry">
+                <div class="container">
+                    <h2 class="section-title">快捷入口</h2>
+                    <div class="entry-grid">
+                        <a href="#ancestors" class="entry-card">
+                            <div class="entry-icon">🕯️</div>
+                            <h3>祖先纪念馆</h3>
+                            <p>缅怀先祖，追思恩德</p>
+                        </a>
+                        <a href="pages/family-tree.html" class="entry-card">
+                            <div class="entry-icon">📜</div>
+                            <h3>族谱</h3>
+                            <p>追溯根源，传承血脉</p>
+                        </a>
+                        <a href="#messages" class="entry-card">
+                            <div class="entry-icon">💐</div>
+                            <h3>留言墙</h3>
+                            <p>寄托哀思，表达怀念</p>
+                        </a>
+                        <a href="pages/culture.html" class="entry-card">
+                            <div class="entry-icon">🏮</div>
+                            <h3>清明文化</h3>
+                            <p>了解传统，传承文化</p>
+                        </a>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section id="about" class="section">
-                <h2 class="section-title">🏛️ 关于本站</h2>
-                <div class="about-content">
-                    <p class="about-text">胡氏家族纪念馆是一个线上祭祖平台，旨在为胡氏家族成员提供一个缅怀先人、传承家风的网络空间。</p>
-                    <p class="about-text">通过这个平台，家族成员可以随时随地表达对先人的追思，分享家族故事，增进家族凝聚力。</p>
-                    <div class="about-info">
-                        <span class="about-info-item">📅 创建时间：2026年清明</span>
-                        <span class="about-info-item">👨‍👩‍👧‍👦 服务对象：胡氏家族成员</span>
+        <section id="ancestors" class="section">
+            <div class="container">
+                <h2 class="section-title">祖先纪念馆</h2>
+                <div class="ancestors-grid" id="ancestorsGrid">
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="section">
+            <div class="container">
+                <h2 class="section-title">扫墓纪事</h2>
+                <div class="timeline" id="timelineContainer">
+                </div>
+            </div>
+        </section>
+
+        <section id="messages" class="section">
+            <div class="container">
+                <h2 class="section-title">留言墙</h2>
+                <div class="worship-section">
+                    <div class="worship-buttons">
+                        <button class="worship-btn" id="flowerBtn">
+                            <span class="worship-icon">💐</span>
+                            <span class="worship-text">献花</span>
+                        </button>
+                        <button class="worship-btn" id="candleBtn">
+                            <span class="worship-icon">🕯️</span>
+                            <span class="worship-text">点烛</span>
+                        </button>
+                        <button class="worship-btn" id="incenseBtn">
+                            <span class="worship-icon">🙏</span>
+                            <span class="worship-text">上香</span>
+                        </button>
+                    </div>
+                    <div class="worship-count">
+                        <span>献花: <strong id="flowerCount">0</strong></span>
+                        <span>点烛: <strong id="candleCount">0</strong></span>
+                        <span>上香: <strong id="incenseCount">0</strong></span>
                     </div>
                 </div>
-            </section>
+
+                <div class="message-tabs">
+                    <button class="message-tab active" data-tab="cloud">☁️ 云留言（所有人可见）</button>
+                    <button class="message-tab" data-tab="local">✍️ 本地留言（仅自己可见）</button>
+                    <button class="message-tab" data-tab="gitalk">💬 GitHub留言</button>
+                </div>
+
+                <div id="cloudMessages" class="message-panel">
+                    <div id="firebaseConfigNotice" style="text-align: center; padding: 30px; color: var(--color-light-gray);">
+                        <p>🔧 正在加载云留言功能...</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">如需配置请查看 README.md</p>
+                    </div>
+                    <div id="cloudMessageFormContainer" style="display: none;">
+                        <div class="message-form-container">
+                            <form id="cloudMessageForm" class="message-form">
+                                <div class="form-group">
+                                    <textarea id="cloudMessageContent" placeholder="写下您想对先祖说的话..." rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="submit-btn">发表留言</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="messages-list" id="cloudMessagesList">
+                    </div>
+                </div>
+
+                <div id="localMessages" class="message-panel" style="display: none;">
+                    <div class="message-form-container">
+                        <form id="messageForm" class="message-form">
+                            <div class="form-group">
+                                <input type="text" id="messageName" placeholder="您的称呼" required>
+                            </div>
+                            <div class="form-group">
+                                <textarea id="messageContent" placeholder="写下您想对先祖说的话..." rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">发表留言</button>
+                        </form>
+                    </div>
+                    <div class="messages-list" id="messagesList">
+                    </div>
+                </div>
+
+                <div id="gitalkMessages" class="message-panel" style="display: none;">
+                    <div id="gitalk-container"></div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -181,10 +204,8 @@
             <p class="footer-text">本网站用于家族纪念，非商业用途。</p>
         </div>
     </footer>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
-    <script type="module">
+    <script>
         const STORAGE_KEY_CURRENT = 'qingming_current_user';
         
         function getCurrentUser() {
@@ -192,7 +213,7 @@
             return user ? JSON.parse(user) : null;
         }
         
-        function init() {
+        function initAuth() {
             const currentUser = getCurrentUser();
             
             if (!currentUser) {
@@ -200,31 +221,15 @@
                 return;
             }
             
-            const loadingScreen = document.getElementById('loadingScreen');
-            const mainContent = document.getElementById('mainContent');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-            }
-            if (mainContent) {
-                mainContent.style.display = 'block';
-            }
-            
-            updateUserInfo(currentUser);
             window.currentUser = currentUser;
         }
         
-        function updateUserInfo(userData) {
-            const userInfoEl = document.getElementById('userInfo');
-            if (userInfoEl) {
-                userInfoEl.innerHTML = `
-                    <div class="user-display-name">👤 ${userData.name || userData.username}</div>
-                `;
-            }
-        }
-        
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-        import { getDatabase, ref, push, onValue, set, transaction, onDisconnect } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
-        
+        initAuth();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
             authDomain: "qingming-memorial.firebaseapp.com",
@@ -235,15 +240,9 @@
             appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        
-        window.FirebaseApp = { initializeApp };
-        window.FirebaseDatabase = { getDatabase, ref, push, onValue, set, transaction, onDisconnect };
-        window.firebaseApp = app;
-        window.firebaseDbInstance = db;
-        
-        init();
+        firebase.initializeApp(firebaseConfig);
+        window.firebaseApp = firebase.app();
+        window.firebaseDB = firebase.database();
     </script>
     <script src="js/main.js"></script>
 </body>
