@@ -520,15 +520,6 @@ function renderMemorialTimeline() {
             </div>
         </div>
     `).join('');
-    
-    setTimeout(() => {
-        document.querySelectorAll('.carousel-image[data-src]').forEach(img => {
-            img.src = img.dataset.src;
-            img.onload = () => {
-                img.classList.add('loaded');
-            };
-        });
-    }, 300);
 }
 
 function renderMediaCarousel(media, timelineId, mediaIndex) {
@@ -555,10 +546,10 @@ function renderMediaCarousel(media, timelineId, mediaIndex) {
                         ${media.type === 'image' 
                             ? (url === 'placeholder' 
                                 ? `<div class="media-placeholder">🖼️</div>`
-                                : `<img data-src="${url}" src="" alt="${media.caption}" class="carousel-image" onclick="window.open('${url}', '_blank')">`)
+                                : `<img src="${url}" alt="${media.caption}" class="carousel-image" onclick="window.open('${url}', '_blank')">`)
                             : (url === 'placeholder'
                                 ? `<div class="media-placeholder">🎬</div>`
-                                : `<video controls class="carousel-video" preload="metadata" data-video-id="video-${uniqueId}-${i}" onplay="saveScrollPosition(this)" onfullscreenchange="handleFullscreenChange(this)">
+                                : `<video controls class="carousel-video" preload="metadata" data-video-id="video-${uniqueId}-${i}" onplay="saveScrollPosition(this)" onwebkitfullscreenchange="handleFullscreenChange(this)" onfullscreenchange="handleFullscreenChange(this)">
                                        <source src="${url}" type="video/mp4">
                                        您的浏览器不支持视频播放。
                                    </video>`)
@@ -580,13 +571,25 @@ function renderMediaCarousel(media, timelineId, mediaIndex) {
 }
 
 let savedScrollPosition = 0;
+let isVideoFullscreen = false;
 
 function saveScrollPosition(video) {
     savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (!isVideoFullscreen) {
+        isVideoFullscreen = true;
+        history.pushState({ videoFullscreen: true }, '');
+    }
 }
 
 function handleFullscreenChange(video) {
     if (!document.fullscreenElement) {
+        isVideoFullscreen = false;
+        
+        if (history.state && history.state.videoFullscreen) {
+            history.back();
+        }
+        
         setTimeout(() => {
             window.scrollTo({
                 top: savedScrollPosition,
@@ -595,6 +598,16 @@ function handleFullscreenChange(video) {
         }, 100);
     }
 }
+
+window.addEventListener('popstate', function(e) {
+    if (isVideoFullscreen) {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+});
 
 const carouselState = {};
 
