@@ -620,33 +620,69 @@ const firebaseConfig = {
 };
 
 let firebaseDB = null;
+let firebaseAuth = null;
+let currentUser = null;
+let currentUserName = '';
 
 function initFirebase() {
     try {
-        if (!window.FirebaseApp || !window.FirebaseDatabase) {
-            updateFirebaseNotice('Firebase SDK 加载中...');
+        if (!window.firebaseApp || !window.firebaseAuthInstance) {
             setTimeout(initFirebase, 500);
             return;
         }
 
-        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-            updateFirebaseNotice('请先配置 Firebase，查看 README.md 了解详细步骤');
-            return;
-        }
-
-        const app = window.FirebaseApp.initializeApp(firebaseConfig);
-        window.firebaseApp = app;
-        firebaseDB = window.FirebaseDatabase.getDatabase(app);
+        firebaseDB = window.FirebaseDatabase.getDatabase(window.firebaseApp);
+        firebaseAuth = window.firebaseAuthInstance;
         
         document.getElementById('firebaseConfigNotice').style.display = 'none';
         document.getElementById('cloudMessageFormContainer').style.display = 'block';
         
+        initAuth();
+        initEmojiPicker();
         loadCloudMessages();
         initCloudMessageForm();
         initWorship();
     } catch (error) {
         console.error('Firebase 初始化失败:', error);
         updateFirebaseNotice('Firebase 配置错误，请检查配置');
+    }
+}
+
+function initEmojiPicker() {
+    const emojiItems = document.querySelectorAll('.emoji-item');
+    const textarea = document.getElementById('cloudMessageContent');
+    
+    emojiItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const emoji = item.dataset.emoji;
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+            
+            textarea.value = textBefore + emoji + textAfter;
+            textarea.focus();
+            textarea.selectionStart = cursorPos + emoji.length;
+            textarea.selectionEnd = cursorPos + emoji.length;
+        });
+    });
+}
+
+function initAuth() {
+    window.FirebaseAuth.onAuthStateChanged(firebaseAuth, (user) => {
+        currentUser = user;
+        updateAuthUI();
+    });
+}
+
+function updateAuthUI() {
+    if (currentUser) {
+        const userRef = window.FirebaseDatabase.ref(firebaseDB, `users/${currentUser.uid}`);
+        window.FirebaseDatabase.onValue(userRef, (snapshot) => {
+            const userData = snapshot.val();
+            if (userData && userData.name) {
+                currentUserName = userData.name;
+            }
+        }, { onlyOnce: true });
     }
 }
 
@@ -702,14 +738,17 @@ function showReplyForm(messageId) {
 }
 
 function submitReply(messageId) {
-    const nameInput = document.getElementById(`reply-name-${messageId}`);
     const contentInput = document.getElementById(`reply-content-${messageId}`);
     
-    const name = nameInput.value.trim();
     const content = contentInput.value.trim();
     
-    if (!name || !content) {
-        alert('请填写姓名和回复内容！');
+    if (!content) {
+        alert('请填写回复内容！');
+        return;
+    }
+    
+    if (!currentUserName) {
+        alert('正在加载用户信息，请稍候...');
         return;
     }
     
@@ -717,16 +756,16 @@ function submitReply(messageId) {
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
     const newReply = {
-        name: name,
+        name: currentUserName,
         content: content,
         date: dateStr,
-        timestamp: now.getTime()
+        timestamp: now.getTime(),
+        userId: currentUser ? currentUser.uid : ''
     };
     
     const repliesRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies`);
     window.FirebaseDatabase.push(repliesRef, newReply);
     
-    nameInput.value = '';
     contentInput.value = '';
     document.getElementById(`reply-form-${messageId}`).style.display = 'none';
     createFloatingEffect('💬');
@@ -774,7 +813,6 @@ function renderCloudMessages(data) {
                 </div>
                 
                 <div class="reply-form" id="reply-form-${msg.id}" style="display: none;">
-                    <input type="text" id="reply-name-${msg.id}" class="reply-input" placeholder="您的称呼">
                     <textarea id="reply-content-${msg.id}" class="reply-textarea" placeholder="写下您的回复..."></textarea>
                     <div class="reply-buttons">
                         <button class="submit-reply-btn" onclick="submitReply('${msg.id}')">发表回复</button>
@@ -807,11 +845,15 @@ function initCloudMessageForm() {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        const name = document.getElementById('cloudMessageName').value.trim();
         const content = document.getElementById('cloudMessageContent').value.trim();
         
-        if (!name || !content) {
-            alert('请填写姓名和留言内容！');
+        if (!content) {
+            alert('请填写留言内容！');
+            return;
+        }
+        
+        if (!currentUserName) {
+            alert('正在加载用户信息，请稍候...');
             return;
         }
         
@@ -819,10 +861,11 @@ function initCloudMessageForm() {
         const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         
         const newMessage = {
-            name: name,
+            name: currentUserName,
             content: content,
             date: dateStr,
-            timestamp: now.getTime()
+            timestamp: now.getTime(),
+            userId: currentUser ? currentUser.uid : ''
         };
         
         const messagesRef = window.FirebaseDatabase.ref(firebaseDB, 'messages');
