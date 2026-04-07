@@ -358,7 +358,7 @@
         </div>
     </footer>
 
-    <script>
+      <script>
         const tombLocations = [
             {
                 id: 1,
@@ -366,10 +366,9 @@
                 brief: '家族高祖大源安息之地',
                 description: '这里是胡氏家族高祖的安息之地，是家族的根源所在。每年清明，家族成员都会齐聚于此，举行庄重的祭扫仪式，缅怀先祖的恩德。',
                 images: [
+                    '../images/ancestor-02.jpg',
                     '../images/ancestor-01-1.jpg',
-                    '../images/ancestor-01-2.jpg',
                     '../images/ancestor-01-3.jpg',
-                    '../images/ancestor-01-4.jpg',
                 ]
             },
             {
@@ -486,6 +485,7 @@
             }
         ];
 
+
         function renderLocations() {
             const grid = document.getElementById('locationsGrid');
             grid.innerHTML = tombLocations.map(location => `
@@ -507,18 +507,9 @@
             const imagesContainer = document.getElementById('detailImages');
             if (location.images && location.images.length > 0) {
                 imagesContainer.innerHTML = location.images.map(img => `
-                    <img data-src="${img}" src="" alt="${location.name}" class="detail-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
+                    <img src="${img}" alt="${location.name}" class="detail-image" onclick="window.open('${img}', '_blank')" onerror="this.style.display='none';">
                 `).join('');
                 imagesContainer.style.display = 'grid';
-                
-                setTimeout(() => {
-                    imagesContainer.querySelectorAll('img[data-src]').forEach(img => {
-                        img.src = img.dataset.src;
-                        img.onload = () => {
-                            img.classList.add('loaded');
-                        };
-                    });
-                }, 100);
             } else {
                 imagesContainer.style.display = 'none';
             }
