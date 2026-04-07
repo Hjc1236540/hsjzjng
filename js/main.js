@@ -696,55 +696,97 @@ function deleteMessage(messageId) {
     }
 }
 
-function deleteReply(messageId, replyId) {
+function deleteReply(messageId, replyPath) {
     if (!isAdmin) {
         alert('只有管理员可以删除回复！');
         return;
     }
     
     if (confirm('确定要删除这条回复吗？')) {
-        firebaseDB.ref(`messages/${messageId}/replies/${replyId}`).remove();
+        firebaseDB.ref(`messages/${messageId}/replies/${replyPath}`).remove();
     }
 }
 
-function showReplyForm(messageId) {
-    const form = document.getElementById(`reply-form-${messageId}`);
+function showReplyForm(formId) {
+    const form = document.getElementById(`reply-form-${formId}`);
     if (form) {
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
 }
 
-function submitReply(messageId) {
-    const nameInput = document.getElementById(`reply-name-${messageId}`);
-    const contentInput = document.getElementById(`reply-content-${messageId}`);
+function submitReply(messageId, parentPath) {
+    const formId = parentPath ? `${messageId}-${parentPath.replace(/\//g, '-')}` : messageId;
+    const contentInput = document.getElementById(`reply-content-${formId}`);
     
-    const name = nameInput.value.trim();
     const content = contentInput.value.trim();
     
-    if (!name || !content) {
-        alert('请填写姓名和回复内容！');
+    if (!content) {
+        alert('请填写回复内容！');
         return;
     }
+    
+    const userName = currentUser ? (currentUser.name || currentUser.username) : '匿名用户';
     
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
     const newReply = {
-        name: name,
+        name: userName,
         content: content,
         date: dateStr,
         timestamp: now.getTime()
     };
     
-    firebaseDB.ref(`messages/${messageId}/replies`).push(newReply);
+    const refPath = parentPath 
+        ? `messages/${messageId}/replies/${parentPath}/replies`
+        : `messages/${messageId}/replies`;
     
-    nameInput.value = '';
+    firebaseDB.ref(refPath).push(newReply);
+    
     contentInput.value = '';
-    const replyForm = document.getElementById(`reply-form-${messageId}`);
+    const replyForm = document.getElementById(`reply-form-${formId}`);
     if (replyForm) {
         replyForm.style.display = 'none';
     }
     createFloatingEffect('💬');
+}
+
+function renderReplyItem(reply, messageId, parentPath = '', level = 0) {
+    const currentPath = parentPath ? `${parentPath}/${reply.id}` : reply.id;
+    const formId = parentPath ? `${messageId}-${currentPath.replace(/\//g, '-')}` : messageId;
+    const replies = reply.replies ? Object.keys(reply.replies)
+        .map(key => ({ id: key, ...reply.replies[key] }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date)) : [];
+    
+    const marginLeft = Math.min(level * 20, 60);
+    
+    return `
+        <div class="reply-item" style="margin-left: ${marginLeft}px;">
+            <div class="reply-header">
+                <span class="reply-author">${escapeHtml(reply.name)}</span>
+                <span class="reply-date">${reply.date}</span>
+                ${isAdmin ? `<button class="delete-reply-btn" onclick="deleteReply('${messageId}', '${currentPath}')">🗑️</button>` : ''}
+            </div>
+            <div class="reply-content">${escapeHtml(reply.content)}</div>
+            <div class="message-actions">
+                <button class="reply-btn" onclick="showReplyForm('${formId}')">💬 回复</button>
+            </div>
+            
+            <div class="reply-form" id="reply-form-${formId}" style="display: none;">
+                <textarea id="reply-content-${formId}" class="reply-textarea" placeholder="写下您的回复..."></textarea>
+                <div class="reply-buttons">
+                    <button class="submit-reply-btn" onclick="submitReply('${messageId}', '${currentPath}')">发表回复</button>
+                    <button class="cancel-reply-btn" onclick="document.getElementById('reply-form-${formId}').style.display='none'">取消</button>
+                </div>
+            </div>
+            
+            ${replies.length > 0 ? `
+                <div class="replies-container">
+                    ${replies.map(r => renderReplyItem(r, messageId, currentPath, level + 1)).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
 }
 
 function loadCloudMessages() {
@@ -789,7 +831,6 @@ function renderCloudMessages(data) {
                 </div>
                 
                 <div class="reply-form" id="reply-form-${msg.id}" style="display: none;">
-                    <input type="text" id="reply-name-${msg.id}" class="reply-input" placeholder="您的称呼">
                     <textarea id="reply-content-${msg.id}" class="reply-textarea" placeholder="写下您的回复..."></textarea>
                     <div class="reply-buttons">
                         <button class="submit-reply-btn" onclick="submitReply('${msg.id}')">发表回复</button>
@@ -799,16 +840,7 @@ function renderCloudMessages(data) {
                 
                 ${replies.length > 0 ? `
                     <div class="replies-container">
-                        ${replies.map(reply => `
-                            <div class="reply-item">
-                                <div class="reply-header">
-                                    <span class="reply-author">${escapeHtml(reply.name)}</span>
-                                    <span class="reply-date">${reply.date}</span>
-                                    ${isAdmin ? `<button class="delete-reply-btn" onclick="deleteReply('${msg.id}', '${reply.id}')">🗑️</button>` : ''}
-                                </div>
-                                <div class="reply-content">${escapeHtml(reply.content)}</div>
-                            </div>
-                        `).join('')}
+                        ${replies.map(reply => renderReplyItem(reply, msg.id, '', 0)).join('')}
                     </div>
                 ` : ''}
             </div>
