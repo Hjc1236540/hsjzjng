@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 胡氏家族纪念馆</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            padding-top: 80px;
+            background: var(--color-bg);
+            min-height: 100vh;
+        }
+        
+        .profile-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .profile-card {
+            background: var(--color-mibai);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-danjin), #d4a853);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+        }
+        
+        .profile-title {
+            color: var(--color-mo);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-subtitle {
+            color: var(--color-qinghui);
+            font-size: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            color: var(--color-mo);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--color-qinghui);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--color-mibai);
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-danjin);
+        }
+        
+        .form-input:disabled {
+            background: var(--color-bg-light);
+            cursor: not-allowed;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-danjin), #d4a853);
+            color: var(--color-mibai);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(212, 168, 83, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--color-qinghui);
+            color: var(--color-mibai);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-mo);
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-group .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--color-qinghui);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: var(--color-danjin);
+        }
+        
+        .back-link::before {
+            content: '←';
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 480px) {
+            .profile-card {
+                padding: 25px;
+            }
+            
+            .profile-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <a href="index.html" class="back-link">返回首页</a>
+        
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">👤</div>
+                <h1 class="profile-title" id="displayName">用户</h1>
+                <p class="profile-subtitle" id="displayUsername">@username</p>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">用户名</label>
+                <input type="text" id="profileUsername" class="form-input" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">称呼</label>
+                <input type="text" id="profileName" class="form-input" placeholder="修改您的称呼">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">新密码（不修改请留空）</label>
+                <input type="password" id="profileNewPassword" class="form-input" placeholder="至少6位">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">确认新密码</label>
+                <input type="password" id="profileConfirmPassword" class="form-input" placeholder="再次输入新密码">
+            </div>
+            
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" onclick="saveProfile()">保存修改</button>
+                <button type="button" class="btn btn-secondary" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged, updatePassword, signOut } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
+            authDomain: "qingming-memorial.firebaseapp.com",
+            databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "qingming-memorial",
+            storageBucket: "qingming-memorial.firebasestorage.app",
+            messagingSenderId: "342758055593",
+            appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        let currentUserData = null;
+        
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const userRef = ref(db, `users/${user.uid}`);
+            onValue(userRef, (snapshot) => {
+                currentUserData = snapshot.val();
+                
+                if (currentUserData) {
+                    document.getElementById('displayName').textContent = currentUserData.name || '用户';
+                    document.getElementById('displayUsername').textContent = '@' + (currentUserData.username || 'user');
+                    document.getElementById('profileUsername').value = currentUserData.username || '';
+                    document.getElementById('profileName').value = currentUserData.name || '';
+                }
+            });
+        });
+        
+        async function saveProfile() {
+            if (!auth.currentUser) return;
+            
+            const name = document.getElementById('profileName').value.trim();
+            const newPassword = document.getElementById('profileNewPassword').value;
+            const confirmPassword = document.getElementById('profileConfirmPassword').value;
+            
+            if (!name) {
+                alert('称呼不能为空！');
+                return;
+            }
+            
+            if (newPassword && newPassword.length < 6) {
+                alert('新密码至少需要6位！');
+                return;
+            }
+            
+            if (newPassword && newPassword !== confirmPassword) {
+                alert('两次输入的密码不一致！');
+                return;
+            }
+            
+            try {
+                const userRef = ref(db, `users/${auth.currentUser.uid}`);
+                await update(userRef, {
+                    name: name
+                });
+                
+                if (newPassword) {
+                    await updatePassword(auth.currentUser, newPassword);
+                }
+                
+                document.getElementById('displayName').textContent = name;
+                document.getElementById('profileNewPassword').value = '';
+                document.getElementById('profileConfirmPassword').value = '';
+                
+                alert('保存成功！');
+            } catch (error) {
+                alert('保存失败：' + error.message);
+            }
+        }
+        
+        async function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                alert('退出失败：' + error.message);
+            }
+        }
+        
+        window.saveProfile = saveProfile;
+        window.logout = logout;
+    </script>
+</body>
+</html>

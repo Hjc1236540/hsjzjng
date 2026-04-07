@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 胡氏家族纪念馆</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3A4F4F 0%, #2c3e3e 50%, #3A4F4F 100%);
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: var(--color-mibai);
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-title {
+            color: var(--color-mo);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            color: var(--color-qinghui);
+            font-size: 0.95rem;
+        }
+        
+        .login-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--color-qinghui);
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: var(--color-qinghui);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .login-tab.active {
+            color: var(--color-danjin);
+            border-bottom-color: var(--color-danjin);
+            font-weight: 600;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--color-qinghui);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--color-mibai);
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-danjin);
+        }
+        
+        .form-hint {
+            color: var(--color-qinghui);
+            font-size: 0.85rem;
+            margin-top: -10px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--color-danjin), #d4a853);
+            color: var(--color-mibai);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 168, 83, 0.4);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px;
+            }
+            
+            .login-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1 class="login-title">胡氏家族纪念馆</h1>
+            <p class="login-subtitle">慎终追远 · 明德归厚</p>
+        </div>
+        
+        <div class="login-tabs">
+            <button class="login-tab active" data-tab="login">登录</button>
+            <button class="login-tab" data-tab="register">注册</button>
+        </div>
+        
+        <div class="debug-info" id="debugInfo">
+            等待操作...
+        </div>
+        
+        <div id="loginForm" class="login-form">
+            <input type="text" id="loginUsername" class="form-input" placeholder="用户名或邮箱" required>
+            <input type="password" id="loginPassword" class="form-input" placeholder="密码" required>
+            <button type="button" class="submit-btn" id="loginBtn">登录</button>
+        </div>
+        
+        <div id="registerForm" class="login-form hidden">
+            <input type="text" id="registerUsername" class="form-input" placeholder="用户名" required>
+            <p class="form-hint">用户名由字母、数字、下划线组成</p>
+            <input type="password" id="registerPassword" class="form-input" placeholder="密码（至少6位）" required>
+            <input type="password" id="registerConfirmPassword" class="form-input" placeholder="确认密码" required>
+            <input type="text" id="registerName" class="form-input" placeholder="您的称呼" required>
+            <button type="button" class="submit-btn" id="registerBtn">注册</button>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
+        
+        const debugInfo = document.getElementById('debugInfo');
+        
+        function updateDebug(text) {
+            debugInfo.textContent = text;
+            console.log(text);
+        }
+        
+        updateDebug('页面加载中...');
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
+            authDomain: "qingming-memorial.firebaseapp.com",
+            databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "qingming-memorial",
+            storageBucket: "qingming-memorial.firebasestorage.app",
+            messagingSenderId: "342758055593",
+            appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
+        };
+        
+        updateDebug('初始化 Firebase...');
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        updateDebug('Firebase 初始化完成');
+        
+        let currentTab = 'login';
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                updateDebug('检测到已登录，跳转到首页...');
+                window.location.href = 'index.html';
+            }
+        });
+        
+        document.querySelectorAll('.login-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentTab = tab.dataset.tab;
+                updateForms();
+            });
+        });
+        
+        function updateForms() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            
+            if (currentTab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+            } else {
+                document.getElementById('registerForm').classList.remove('hidden');
+            }
+        }
+        
+        document.getElementById('loginBtn').addEventListener('click', async function() {
+            updateDebug('点击登录按钮');
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            updateDebug('用户名: ' + username);
+            
+            if (!username || !password) {
+                alert('请填写用户名和密码！');
+                return;
+            }
+            
+            let email = username;
+            if (!username.includes('@')) {
+                email = username + '@qingming.local';
+            }
+            
+            updateDebug('使用邮箱: ' + email);
+            
+            try {
+                updateDebug('正在登录...');
+                await signInWithEmailAndPassword(auth, email, password);
+                updateDebug('登录成功');
+                
+                alert('登录成功！即将跳转到首页...');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            } catch (error) {
+                updateDebug('登录失败: ' + error.message);
+                let errorMsg = '登录失败，请重试';
+                if (error.code === 'auth/user-not-found') {
+                    errorMsg = '用户不存在，请先注册';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMsg = '密码错误';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = '用户名格式不正确';
+                }
+                alert(errorMsg);
+            }
+        });
+        
+        document.getElementById('registerBtn').addEventListener('click', async function() {
+            updateDebug('点击注册按钮');
+            
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const name = document.getElementById('registerName').value;
+            
+            updateDebug('用户名: ' + username + ', 称呼: ' + name);
+            
+            if (!username || !password || !confirmPassword || !name) {
+                alert('请填写所有信息！');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('密码至少需要6位！');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致！');
+                return;
+            }
+            
+            const usernameRegex = /^[a-zA-Z0-9_]+$/;
+            if (!usernameRegex.test(username)) {
+                alert('用户名只能包含字母、数字和下划线！');
+                return;
+            }
+            
+            const email = username + '@qingming.local';
+            updateDebug('生成邮箱: ' + email);
+            
+            try {
+                updateDebug('正在创建用户...');
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                updateDebug('用户创建成功，UID: ' + user.uid);
+                
+                updateDebug('正在保存用户数据...');
+                await set(ref(db, `users/${user.uid}`), {
+                    username: username,
+                    email: email,
+                    name: name,
+                    createdAt: new Date().toISOString()
+                });
+                updateDebug('用户数据保存成功');
+                
+                alert('注册成功！即将跳转到首页...');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            } catch (error) {
+                updateDebug('注册失败: ' + error.message);
+                let errorMsg = '注册失败，请重试';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMsg = '该用户名已被注册，请换一个用户名';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMsg = '密码太简单，至少需要6位';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = '用户名格式不正确，只能包含字母、数字和下划线';
+                }
+                alert(errorMsg);
+            }
+        });
+        
+        updateForms();
+        updateDebug('准备就绪，请选择操作');
+    </script>
+</body>
+</html>
