@@ -24,6 +24,9 @@
             <a href="#messages" class="nav-item">留言墙</a>
             <a href="pages/culture.html" class="nav-item">清明文化</a>
             <a href="pages/about.html" class="nav-item">关于我们</a>
+            <a href="pages/tomb-map.html" class="nav-item">扫墓地图</a>
+            <a href="pages/activity.html" class="nav-item">活动公告</a>
+            <a href="profile.html" class="nav-item" style="margin-left: auto; font-weight: 600;">👤 个人中心</a>
         </div>
     </nav>
 
@@ -163,10 +166,26 @@
                         <div class="message-form-container">
                             <form id="cloudMessageForm" class="message-form">
                                 <div class="form-group">
-                                    <input type="text" id="cloudMessageName" placeholder="您的称呼" required>
+                                    <textarea id="cloudMessageContent" placeholder="写下您想对先祖说的话..." rows="4" required></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <textarea id="cloudMessageContent" placeholder="写下您想对先祖说的话..." rows="4" required></textarea>
+                                    <div class="emoji-picker">
+                                        <div class="emoji-title">添加表情：</div>
+                                        <div class="emoji-list" id="emojiList">
+                                            <span class="emoji-item" data-emoji="🙏">🙏</span>
+                                            <span class="emoji-item" data-emoji="💐">💐</span>
+                                            <span class="emoji-item" data-emoji="🕯️">🕯️</span>
+                                            <span class="emoji-item" data-emoji="🌸">🌸</span>
+                                            <span class="emoji-item" data-emoji="🌿">🌿</span>
+                                            <span class="emoji-item" data-emoji="❤️">❤️</span>
+                                            <span class="emoji-item" data-emoji="🙌">🙌</span>
+                                            <span class="emoji-item" data-emoji="🌼">🌼</span>
+                                            <span class="emoji-item" data-emoji="🍃">🍃</span>
+                                            <span class="emoji-item" data-emoji="✨">✨</span>
+                                            <span class="emoji-item" data-emoji="💫">💫</span>
+                                            <span class="emoji-item" data-emoji="🕊️">🕊️</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" class="submit-btn">发表留言</button>
                             </form>
@@ -210,9 +229,32 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
         import { getDatabase, ref, push, onValue, set } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
+            authDomain: "qingming-memorial.firebaseapp.com",
+            databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "qingming-memorial",
+            storageBucket: "qingming-memorial.firebasestorage.app",
+            messagingSenderId: "342758055593",
+            appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
         
         window.FirebaseApp = { initializeApp };
         window.FirebaseDatabase = { getDatabase, ref, push, onValue, set };
+        window.FirebaseAuth = { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged };
+        window.firebaseApp = app;
+        window.firebaseAuthInstance = auth;
     </script>
     <script src="js/main.js"></script>
 </body>
