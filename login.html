@@ -121,28 +121,11 @@
             display: none;
         }
 
-        .debug-info {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #856404;
-            word-break: break-all;
-        }
-
-        .retry-hint {
+        .hint-text {
             text-align: center;
             margin-top: 15px;
             color: var(--color-qinghui);
-            font-size: 0.9rem;
-        }
-
-        .retry-hint a {
-            color: var(--color-danjin);
-            text-decoration: underline;
-            cursor: pointer;
+            font-size: 0.85rem;
         }
 
         @media (max-width: 768px) {
@@ -214,8 +197,6 @@
         <h1 class="login-title">胡氏家族纪念馆</h1>
         <p class="login-subtitle">慎终追远 · 明德归厚</p>
         
-        <div class="debug-info" id="debugInfo">正在初始化...</div>
-        
         <div class="login-tabs">
             <button class="login-tab active" data-tab="login">登录</button>
             <button class="login-tab" data-tab="register">注册</button>
@@ -248,110 +229,43 @@
             <button type="button" class="submit-btn" id="registerBtn">注册</button>
         </div>
 
-        <div class="retry-hint" id="retryHint" style="display: none;">
-            如果一直失败，请尝试：<a onclick="location.reload()">刷新页面</a>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px;">
-            <button type="button" id="clearLoginBtn" style="background: none; border: none; color: var(--color-qinghui); text-decoration: underline; cursor: pointer; font-size: 0.9rem;">
-                清除登录状态（重新测试）
-            </button>
-        </div>
+        <p class="hint-text">💡 本地模式，不需要网络</p>
     </div>
     
     <script>
-        const debugInfo = document.getElementById('debugInfo');
-        const retryHint = document.getElementById('retryHint');
+        const STORAGE_KEY_USERS = 'qingming_users';
+        const STORAGE_KEY_CURRENT = 'qingming_current_user';
         
-        function updateDebug(text) {
-            debugInfo.textContent = text;
-            console.log(text);
+        function getUsers() {
+            const users = localStorage.getItem(STORAGE_KEY_USERS);
+            return users ? JSON.parse(users) : {};
         }
         
-        updateDebug('正在加载 Firebase SDK...');
-        
-        function loadScript(url) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = url;
-                script.type = 'module';
-                script.onload = () => resolve();
-                script.onerror = () => reject(new Error('Failed to load script: ' + url));
-                document.head.appendChild(script);
-            });
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
         }
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
-            authDomain: "qingming-memorial.firebaseapp.com",
-            databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "qingming-memorial",
-            storageBucket: "qingming-memorial.firebasestorage.app",
-            messagingSenderId: "342758055593",
-            appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
-        };
+        function getCurrentUser() {
+            const user = localStorage.getItem(STORAGE_KEY_CURRENT);
+            return user ? JSON.parse(user) : null;
+        }
         
-        let app = null;
-        let auth = null;
-        let db = null;
-        let initRetries = 0;
-        const maxInitRetries = 5;
+        function setCurrentUser(user) {
+            localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify(user));
+        }
         
-        async function initFirebase() {
-            try {
-                updateDebug('正在加载 Firebase... (尝试 ' + (initRetries + 1) + '/' + maxInitRetries + ')');
-                
-                const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js');
-                const { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js');
-                const { getDatabase, ref, set } = await import('https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js');
-                
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getDatabase(app);
-                
-                updateDebug('Firebase 初始化成功 ✓');
-                initApp(createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, ref, set);
-            } catch (error) {
-                initRetries++;
-                if (initRetries < maxInitRetries) {
-                    updateDebug('加载失败，正在重试... (' + initRetries + '/' + maxInitRetries + ')');
-                    setTimeout(initFirebase, 1500);
-                } else {
-                    updateDebug('加载失败: ' + error.message);
-                    retryHint.style.display = 'block';
-                    alert('Firebase 加载失败，请刷新页面重试\n\n提示：如果是网络问题，可以尝试使用本地版本\n\n错误: ' + error.message);
-                }
+        function clearCurrentUser() {
+            localStorage.removeItem(STORAGE_KEY_CURRENT);
+        }
+        
+        function init() {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                window.location.href = 'index.html';
+                return;
             }
-        }
-        
-        function initApp(createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, ref, set) {
+            
             let currentTab = 'login';
-            let skipRedirect = false;
-            
-            document.getElementById('clearLoginBtn').addEventListener('click', async function() {
-                try {
-                    updateDebug('正在清除登录状态...');
-                    await signOut(auth);
-                    skipRedirect = true;
-                    updateDebug('已清除登录状态，可以重新登录了');
-                    alert('已清除登录状态！现在可以重新登录或注册');
-                } catch (error) {
-                    updateDebug('清除失败: ' + error.message);
-                }
-            });
-            
-            onAuthStateChanged(auth, (user) => {
-                if (user && !skipRedirect) {
-                    updateDebug('检测到已登录，1秒后跳转到首页...');
-                    setTimeout(() => {
-                        if (!skipRedirect) {
-                            window.location.href = 'index.html';
-                        }
-                    }, 1000);
-                } else if (!user) {
-                    updateDebug('未登录状态，可以登录或注册');
-                }
-            });
             
             document.querySelectorAll('.login-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -373,69 +287,39 @@
                 }
             }
             
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.addEventListener('click', async function() {
-                updateDebug('点击登录按钮');
-                loginBtn.disabled = true;
-                
+            document.getElementById('loginBtn').addEventListener('click', function() {
                 let username = document.getElementById('loginUsername').value.trim();
                 let password = document.getElementById('loginPassword').value;
                 
-                updateDebug('用户名: [' + username + ']');
-                
                 if (!username || !password) {
                     alert('请填写用户名和密码！');
-                    loginBtn.disabled = false;
                     return;
                 }
                 
                 username = username.toLowerCase();
                 
-                let email = username;
-                if (!username.includes('@')) {
-                    email = username + '@qingming.local';
+                const users = getUsers();
+                const user = users[username];
+                
+                if (!user) {
+                    alert('用户不存在，请先注册！');
+                    return;
                 }
                 
-                updateDebug('使用邮箱: ' + email);
-                
-                try {
-                    updateDebug('正在登录...');
-                    await signInWithEmailAndPassword(auth, email, password);
-                    updateDebug('登录成功 ✓');
-                    
-                    alert('登录成功！即将跳转到首页...');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 500);
-                } catch (error) {
-                    loginBtn.disabled = false;
-                    updateDebug('登录失败: ' + error.code + ' - ' + error.message);
-                    retryHint.style.display = 'block';
-                    
-                    let errorMsg = '登录失败，请重试';
-                    if (error.code === 'auth/user-not-found') {
-                        errorMsg = '用户不存在，请先注册';
-                    } else if (error.code === 'auth/wrong-password') {
-                        errorMsg = '密码错误';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMsg = '用户名格式不正确';
-                    } else if (error.code === 'auth/too-many-requests') {
-                        errorMsg = '尝试次数过多，请稍后再试';
-                    } else if (error.code === 'auth/network-request-failed') {
-                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试\n\n提示：如果一直失败，可以使用本地版本';
-                    } else if (error.code === 'auth/internal-error') {
-                        errorMsg = '服务器内部错误，请稍后重试';
-                    }
-                    alert(errorMsg);
+                if (user.password !== password) {
+                    alert('密码错误！');
+                    return;
                 }
+                
+                setCurrentUser(user);
+                alert('登录成功！即将跳转到首页...');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
             });
             
-            const registerBtn = document.getElementById('registerBtn');
-            registerBtn.addEventListener('click', async function() {
-                updateDebug('点击注册按钮');
-                registerBtn.disabled = true;
-                
+            document.getElementById('registerBtn').addEventListener('click', function() {
                 let username = document.getElementById('registerUsername').value.trim();
                 const password = document.getElementById('registerPassword').value;
                 const confirmPassword = document.getElementById('registerConfirmPassword').value;
@@ -443,84 +327,54 @@
                 
                 username = username.toLowerCase();
                 
-                updateDebug('用户名: [' + username + ']');
-                updateDebug('称呼: [' + name + ']');
-                
                 if (!username || !password || !confirmPassword || !name) {
                     alert('请填写完整信息！');
-                    registerBtn.disabled = false;
                     return;
                 }
                 
                 if (password !== confirmPassword) {
                     alert('两次密码输入不一致！');
-                    registerBtn.disabled = false;
                     return;
                 }
                 
                 if (password.length < 6) {
                     alert('密码至少需要6位！');
-                    registerBtn.disabled = false;
                     return;
                 }
                 
                 const usernameRegex = /^[a-zA-Z0-9_]+$/;
                 if (!usernameRegex.test(username)) {
                     alert('用户名只能包含字母、数字和下划线！');
-                    registerBtn.disabled = false;
                     return;
                 }
                 
-                let email = username;
-                if (!username.includes('@')) {
-                    email = username + '@qingming.local';
+                const users = getUsers();
+                
+                if (users[username]) {
+                    alert('用户名已被使用，请换一个！');
+                    return;
                 }
                 
-                updateDebug('使用邮箱: ' + email);
+                const newUser = {
+                    username: username,
+                    password: password,
+                    name: name,
+                    createdAt: Date.now()
+                };
                 
-                try {
-                    updateDebug('正在创建用户...');
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const user = userCredential.user;
-                    updateDebug('用户创建成功');
-                    
-                    updateDebug('正在保存用户信息...');
-                    await set(ref(db, 'users/' + user.uid), {
-                        username: username,
-                        name: name,
-                        email: email,
-                        createdAt: Date.now()
-                    });
-                    updateDebug('用户信息保存成功 ✓');
-                    
-                    alert('注册成功！即将跳转到首页...');
-                    
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 500);
-                } catch (error) {
-                    registerBtn.disabled = false;
-                    updateDebug('注册失败: ' + error.code + ' - ' + error.message);
-                    retryHint.style.display = 'block';
-                    
-                    let errorMsg = '注册失败，请重试';
-                    if (error.code === 'auth/email-already-in-use') {
-                        errorMsg = '用户名已被使用，请换一个';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMsg = '用户名格式不正确';
-                    } else if (error.code === 'auth/weak-password') {
-                        errorMsg = '密码太弱，请使用更复杂的密码';
-                    } else if (error.code === 'auth/network-request-failed') {
-                        errorMsg = '网络连接失败，请检查网络连接\n或稍后重试\n\n提示：如果一直失败，可以使用本地版本';
-                    } else if (error.code === 'auth/too-many-requests') {
-                        errorMsg = '尝试次数过多，请稍后再试';
-                    }
-                    alert(errorMsg);
-                }
+                users[username] = newUser;
+                saveUsers(users);
+                setCurrentUser(newUser);
+                
+                alert('注册成功！即将跳转到首页...');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
             });
         }
         
-        initFirebase();
+        init();
     </script>
 </body>
 </html>
