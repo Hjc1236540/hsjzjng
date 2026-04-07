@@ -609,36 +609,30 @@ function handleSwipe(uniqueId, startX, endX) {
     }
 }
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCZYFMMsDLA10s-3285VQE4p7l7bWk0uA4",
-    authDomain: "qingming-memorial.firebaseapp.com",
-    databaseURL: "https://qingming-memorial-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "qingming-memorial",
-    storageBucket: "qingming-memorial.firebasestorage.app",
-    messagingSenderId: "342758055593",
-    appId: "1:342758055593:web:6a5645d49e90ded65f13b8"
-};
-
 let firebaseDB = null;
 let currentUser = null;
-let currentUserName = '';
 
 function initFirebase() {
     try {
-        if (!window.firebaseApp) {
+        if (!window.firebaseDB) {
             setTimeout(initFirebase, 500);
             return;
         }
 
-        firebaseDB = window.FirebaseDatabase.getDatabase(window.firebaseApp);
+        firebaseDB = window.firebaseDB;
         
         if (window.currentUser) {
             currentUser = window.currentUser;
-            currentUserName = currentUser.name || currentUser.username;
         }
         
-        document.getElementById('firebaseConfigNotice').style.display = 'none';
-        document.getElementById('cloudMessageFormContainer').style.display = 'block';
+        const configNotice = document.getElementById('firebaseConfigNotice');
+        const messageFormContainer = document.getElementById('cloudMessageFormContainer');
+        if (configNotice) {
+            configNotice.style.display = 'none';
+        }
+        if (messageFormContainer) {
+            messageFormContainer.style.display = 'block';
+        }
         
         initEmojiPicker();
         loadCloudMessages();
@@ -654,6 +648,8 @@ function initEmojiPicker() {
     const emojiItems = document.querySelectorAll('.emoji-item');
     const textarea = document.getElementById('cloudMessageContent');
     
+    if (!textarea) return;
+    
     emojiItems.forEach(item => {
         item.addEventListener('click', () => {
             const emoji = item.dataset.emoji;
@@ -668,8 +664,6 @@ function initEmojiPicker() {
         });
     });
 }
-
-
 
 function updateFirebaseNotice(text) {
     const notice = document.getElementById('firebaseConfigNotice');
@@ -698,8 +692,7 @@ function deleteMessage(messageId) {
     }
     
     if (confirm('确定要删除这条留言吗？')) {
-        const messageRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}`);
-        window.FirebaseDatabase.set(messageRef, null);
+        firebaseDB.ref(`messages/${messageId}`).remove();
     }
 }
 
@@ -710,8 +703,7 @@ function deleteReply(messageId, replyId) {
     }
     
     if (confirm('确定要删除这条回复吗？')) {
-        const replyRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies/${replyId}`);
-        window.FirebaseDatabase.set(replyRef, null);
+        firebaseDB.ref(`messages/${messageId}/replies/${replyId}`).remove();
     }
 }
 
@@ -723,17 +715,14 @@ function showReplyForm(messageId) {
 }
 
 function submitReply(messageId) {
+    const nameInput = document.getElementById(`reply-name-${messageId}`);
     const contentInput = document.getElementById(`reply-content-${messageId}`);
     
+    const name = nameInput.value.trim();
     const content = contentInput.value.trim();
     
-    if (!content) {
-        alert('请填写回复内容！');
-        return;
-    }
-    
-    if (!currentUserName) {
-        alert('正在加载用户信息，请稍候...');
+    if (!name || !content) {
+        alert('请填写姓名和回复内容！');
         return;
     }
     
@@ -741,27 +730,27 @@ function submitReply(messageId) {
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
     const newReply = {
-        name: currentUserName,
+        name: name,
         content: content,
         date: dateStr,
-        timestamp: now.getTime(),
-        userId: currentUser ? currentUser.username : ''
+        timestamp: now.getTime()
     };
     
-    const repliesRef = window.FirebaseDatabase.ref(firebaseDB, `messages/${messageId}/replies`);
-    window.FirebaseDatabase.push(repliesRef, newReply);
+    firebaseDB.ref(`messages/${messageId}/replies`).push(newReply);
     
+    nameInput.value = '';
     contentInput.value = '';
-    document.getElementById(`reply-form-${messageId}`).style.display = 'none';
+    const replyForm = document.getElementById(`reply-form-${messageId}`);
+    if (replyForm) {
+        replyForm.style.display = 'none';
+    }
     createFloatingEffect('💬');
 }
 
 function loadCloudMessages() {
     if (!firebaseDB) return;
     
-    const messagesRef = window.FirebaseDatabase.ref(firebaseDB, 'messages');
-    
-    window.FirebaseDatabase.onValue(messagesRef, (snapshot) => {
+    firebaseDB.ref('messages').on('value', (snapshot) => {
         const data = snapshot.val();
         renderCloudMessages(data);
     });
@@ -769,6 +758,8 @@ function loadCloudMessages() {
 
 function renderCloudMessages(data) {
     const messagesList = document.getElementById('cloudMessagesList');
+    
+    if (!messagesList) return;
     
     if (!data) {
         messagesList.innerHTML = '<div class="empty-messages">暂无留言，来做第一个留言的人吧！</div>';
@@ -798,6 +789,7 @@ function renderCloudMessages(data) {
                 </div>
                 
                 <div class="reply-form" id="reply-form-${msg.id}" style="display: none;">
+                    <input type="text" id="reply-name-${msg.id}" class="reply-input" placeholder="您的称呼">
                     <textarea id="reply-content-${msg.id}" class="reply-textarea" placeholder="写下您的回复..."></textarea>
                     <div class="reply-buttons">
                         <button class="submit-reply-btn" onclick="submitReply('${msg.id}')">发表回复</button>
@@ -826,6 +818,7 @@ function renderCloudMessages(data) {
 
 function initCloudMessageForm() {
     const form = document.getElementById('cloudMessageForm');
+    if (!form) return;
     
     form.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -837,24 +830,19 @@ function initCloudMessageForm() {
             return;
         }
         
-        if (!currentUserName) {
-            alert('正在加载用户信息，请稍候...');
-            return;
-        }
+        const userName = currentUser ? (currentUser.name || currentUser.username) : '匿名用户';
         
         const now = new Date();
         const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         
         const newMessage = {
-            name: currentUserName,
+            name: userName,
             content: content,
             date: dateStr,
-            timestamp: now.getTime(),
-            userId: currentUser ? currentUser.username : ''
+            timestamp: now.getTime()
         };
         
-        const messagesRef = window.FirebaseDatabase.ref(firebaseDB, 'messages');
-        window.FirebaseDatabase.push(messagesRef, newMessage);
+        firebaseDB.ref('messages').push(newMessage);
         
         form.reset();
         createFloatingEffect('🙏');
@@ -995,15 +983,18 @@ function initWorship() {
     const incenseBtn = document.getElementById('incenseBtn');
 
     function updateDisplay() {
-        document.getElementById('flowerCount').textContent = currentWorshipData.flowers || 0;
-        document.getElementById('candleCount').textContent = currentWorshipData.candles || 0;
-        document.getElementById('incenseCount').textContent = currentWorshipData.incense || 0;
+        const flowerCount = document.getElementById('flowerCount');
+        const candleCount = document.getElementById('candleCount');
+        const incenseCount = document.getElementById('incenseCount');
+        if (flowerCount) flowerCount.textContent = currentWorshipData.flowers || 0;
+        if (candleCount) candleCount.textContent = currentWorshipData.candles || 0;
+        if (incenseCount) incenseCount.textContent = currentWorshipData.incense || 0;
     }
 
-    if (window.FirebaseDatabase && firebaseDB) {
-        const worshipRef = window.FirebaseDatabase.ref(firebaseDB, 'worship');
+    if (firebaseDB) {
+        const worshipRef = firebaseDB.ref('worship');
 
-        window.FirebaseDatabase.onValue(worshipRef, (snapshot) => {
+        worshipRef.on('value', (snapshot) => {
             const data = snapshot.val() || { flowers: 0, candles: 0, incense: 0 };
             currentWorshipData = data;
             updateDisplay();
@@ -1012,7 +1003,7 @@ function initWorship() {
         if (flowerBtn) {
             flowerBtn.addEventListener('click', () => {
                 currentWorshipData.flowers = (currentWorshipData.flowers || 0) + 1;
-                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                worshipRef.set(currentWorshipData)
                     .then(() => {
                         createFloatingEffect('💐');
                     })
@@ -1025,7 +1016,7 @@ function initWorship() {
         if (candleBtn) {
             candleBtn.addEventListener('click', () => {
                 currentWorshipData.candles = (currentWorshipData.candles || 0) + 1;
-                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                worshipRef.set(currentWorshipData)
                     .then(() => {
                         createFloatingEffect('🕯️');
                     })
@@ -1038,7 +1029,7 @@ function initWorship() {
         if (incenseBtn) {
             incenseBtn.addEventListener('click', () => {
                 currentWorshipData.incense = (currentWorshipData.incense || 0) + 1;
-                window.FirebaseDatabase.set(worshipRef, currentWorshipData)
+                worshipRef.set(currentWorshipData)
                     .then(() => {
                         createFloatingEffect('🙏');
                     })
