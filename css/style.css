@@ -1446,3 +1446,283 @@ h1, h2, h3, h4 {
 .emoji-item:active {
     transform: scale(0.95);
 }
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .header {
+        padding: 40px 15px;
+    }
+
+    .site-title {
+        font-size: 1.8rem;
+        letter-spacing: 4px;
+        margin-bottom: 10px;
+    }
+
+    .site-subtitle {
+        font-size: 0.95rem;
+        letter-spacing: 2px;
+    }
+
+    .nav-container {
+        padding: 0 10px;
+        overflow-x: auto;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .nav-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-item {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .section {
+        padding: 40px 0;
+    }
+
+    .carousel {
+        height: 250px;
+    }
+
+    .carousel-text h2 {
+        font-size: 1.6rem;
+        letter-spacing: 2px;
+    }
+
+    .carousel-text p {
+        font-size: 1rem;
+        letter-spacing: 1px;
+    }
+
+    .carousel-indicators {
+        bottom: 15px;
+        gap: 8px;
+    }
+
+    .indicator {
+        width: 10px;
+        height: 10px;
+    }
+
+    .intro-box {
+        padding: 30px 20px;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+    }
+
+    .ancestors-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .ancestor-card {
+        padding: 25px;
+    }
+
+    .ancestor-avatar {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 15px;
+    }
+
+    .ancestor-name {
+        font-size: 1.3rem;
+    }
+
+    .ancestor-info {
+        font-size: 0.95rem;
+    }
+
+    .timeline::before {
+        left: 20px;
+    }
+
+    .timeline-item {
+        padding-left: 50px;
+    }
+
+    .timeline-dot {
+        left: 12px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .timeline-content {
+        padding: 20px;
+    }
+
+    .timeline-year {
+        font-size: 1.3rem;
+    }
+
+    .media-carousel {
+        height: 220px;
+    }
+
+    .message-board {
+        padding: 25px;
+    }
+
+    .message-form-container {
+        padding: 25px;
+    }
+
+    .message-form {
+        gap: 15px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 12px 15px;
+        font-size: 1rem;
+    }
+
+    .submit-btn {
+        padding: 14px 30px;
+        font-size: 1rem;
+    }
+
+    .message-item {
+        padding: 20px;
+    }
+
+    .message-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .message-author {
+        font-size: 1.05rem;
+    }
+
+    .message-time {
+        font-size: 0.85rem;
+    }
+
+    .message-content {
+        font-size: 1rem;
+    }
+
+    .worship-actions {
+        gap: 15px;
+    }
+
+    .worship-btn {
+        padding: 18px 25px;
+        font-size: 0.95rem;
+        min-width: 100px;
+    }
+
+    .worship-count {
+        font-size: 1.4rem;
+    }
+
+    .footer {
+        padding: 40px 20px;
+    }
+
+    .footer-text {
+        font-size: 0.9rem;
+    }
+
+    .page-container {
+        padding: 25px;
+    }
+
+    .back-link {
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
+
+    .emoji-list {
+        gap: 6px;
+    }
+
+    .emoji-item {
+        font-size: 1.6rem;
+        padding: 4px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 30px 10px;
+    }
+
+    .site-title {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .site-subtitle {
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .nav-item {
+        padding: 12px 14px;
+        font-size: 0.85rem;
+    }
+
+    .carousel {
+        height: 200px;
+    }
+
+    .carousel-text h2 {
+        font-size: 1.4rem;
+    }
+
+    .carousel-text p {
+        font-size: 0.9rem;
+    }
+
+    .section-title {
+        font-size: 1.4rem;
+    }
+
+    .ancestor-card {
+        padding: 20px;
+    }
+
+    .ancestor-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .ancestor-name {
+        font-size: 1.2rem;
+    }
+
+    .worship-btn {
+        padding: 15px 20px;
+        font-size: 0.9rem;
+        min-width: 85px;
+    }
+
+    .worship-count {
+        font-size: 1.2rem;
+    }
+
+    .message-board {
+        padding: 20px;
+    }
+
+    .message-form-container {
+        padding: 20px;
+    }
+}
